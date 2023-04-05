@@ -9,8 +9,8 @@ import { Container } from 'typedi';
 describe('service urlService', () => {
   const url = 'www.baidu.com/unit'; 
   let urlInstance: Url;
-  let urlService: UrlService;
   let mongoService: MongoService;
+  let urlService: UrlService;
 
 
   beforeAll(async()=> {

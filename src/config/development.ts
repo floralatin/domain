@@ -4,7 +4,7 @@ export default {
   mongo: {
     uri: "mongodb://127.0.0.1:27017/domain",
     options: {
-      maxIdleTimeMS: 30000,
+      connectTimeoutMS: 10000,
       minPoolSize: 5
     },
   },

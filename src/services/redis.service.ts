@@ -5,41 +5,55 @@ import EventEmitter from 'events';
 
 import config from "../config";
 import { logger } from "../utils/logger";
+import { connect } from 'mongoose';
 
 @Service()
-export class RedisService extends EventEmitter {
+export class RedisService {
   private client!: any;
   private prefix = 'domain:';
+  public ready = false;
 
   constructor() {
-    super();
-    this.init().then(()=> {
-      this.emit('redis');
+    this.init().then(async ()=> {
+      await this.connect();
+    }).catch(error=> {
+      logger.error(`Redis error: ${error}`);
+      this.ready = false;
     });
   }
 
   async init() {
+    if (this.client) {
+      return this.client;
+    }
     try {
       if(config.isProduction()) {
         this.client = createCluster(config.get("redis.nodes"));
       } else {
         this.client = createClient(config.get("redis.node"));
       }
-      await this.client.connect().then(()=> {
-        logger.info(`=================================`);
-        logger.info(`🚀 Redis connect succeeded`);
-        logger.info(`=================================`);
-      });
       this.client.on('error', (error: any)=> {
         console.error('Error to Redis', error);
-        this.emit('redisError',error);
+        this.ready = false;
       });
-      this.client.on('connect', () => {
-        console.log('Connected to Redis');
+      this.client.on('ready', () => {
+        logger.info(`=================================`);
+        logger.info(`🚀 Redis ready succeeded`);
+        logger.info(`=================================`);
+        this.ready = true;
       });
     } catch(error) {
       logger.error(`Redis error: ${error}`);
-      this.emit('redisError');
+      this.ready = false;
+    }
+  }
+
+  async connect () {
+    try {
+      return await this.client.connect();
+    } catch (error) {
+      logger.error(`Redis error: ${error}`);
+      this.ready = false;
     }
   }
 

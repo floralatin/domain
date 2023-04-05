@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import request from 'supertest';
 import app from '../../../src/server';
 import urlService from '../../../src/services/url.service';

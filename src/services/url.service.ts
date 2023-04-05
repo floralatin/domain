@@ -4,6 +4,7 @@ import { Url } from "../interfaces/url.interface";
 import { bigintToBase62 } from "../utils/transfer";
 import { Snowflake } from '../utils/snowflake';
 import { v4 as uuidV4 } from 'uuid';
+import { UserModel } from '../models/user.model';
 
 @Service()
 export class UrlService {
@@ -39,6 +40,10 @@ export class UrlService {
     codeData.uid = uuidV4();
     
     return await UrlModel.create({ ...codeData });
+  }
+
+  public async deleteByCode(code: string) {
+    await UserModel.deleteOne({ code: {$eq: code}});
   }
 
 }

@@ -12,6 +12,7 @@ import compression from "compression";
 import { rateLimiter } from "./middlewares/rateLimiter.middleware";
 import { ipLimiter } from "./middlewares/limiter.middleware";
 import { errorHandler } from "./middlewares/error.middleware";
+import { asyncHook } from "./middlewares/asyncHook.middleware";
 
 import { UrlRoutes } from "./routes/url.route";
 import { MongoService } from "./services/mongo.service";
@@ -21,7 +22,7 @@ import { RedisService } from "./services/redis.service";
 export class App {
   private app: express.Application;
   private port: number = config.get("port") || 3000;
-  private health = false;
+  private ready = false;
   
   @Inject()
   private urlRoutes: UrlRoutes = Container.get(UrlRoutes);
@@ -31,23 +32,30 @@ export class App {
   private redisService: RedisService = Container.get(RedisService);
 
   constructor() {
-
     this.app = express();
-    this.app.on('error', (error)=> {
-      logger.error('app on error', error);
-      this.health = false;
-    });
-    this.app.on('start', (data)=> {
-      logger.info('app on start', data);
-      this.health = true;
-    });
-
+    this.init();
     this.initializeMiddlewares();
     this.initializeRoutes();
     this.initializeErrorHandling();
   }
 
+  private init() {
+    this.app.on('error', (error)=> {
+      logger.error('App error!', error);
+      this.ready = false;
+    });
+    this.app.on('close', ()=> {
+      logger.info('App close!');
+      this.ready = false;
+    });
+    this.app.on('listening', ()=> {
+      logger.info('App start!');
+      this.ready = true;
+    });
+  }
+
   private initializeMiddlewares() {
+    this.app.use(asyncHook);
     this.app.use(cors());
     this.app.use(helmet());
     this.app.use(compression());
@@ -58,8 +66,9 @@ export class App {
   }
 
   private initializeRoutes() {
-    this.app.use(Router().get('/health', (req: Request, res: Response) => {
-      res.status(200).json({ health: this.health });
+   
+    this.app.use(Router().get('/ping', (req: Request, res: Response) => {
+      res.status(200).json('pong');
     }));
     this.app.use('/',this.urlRoutes.getRouter());
   }
@@ -74,7 +83,7 @@ export class App {
       logger.info(`======= ENV: ${config.env} =======`);
       logger.info(`🚀 App listening on the port ${this.port}`);
       logger.info(`=================================`);
-      this.app.emit("start");
+      this.ready = true;
     });
   }
 

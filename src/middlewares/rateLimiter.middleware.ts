@@ -1,38 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
 
 class TokenBucket {
-  capacity: number;
-  tokens: number;
-  fillTime: number;
-  interval: number;
+  private capacity: number;
+  private tokens: number;
+  private fillRate: number;
+  private lastFillTime: number;
 
-  constructor(capacity: number, fillTime: number) {
+  constructor(capacity: number, fillRate: number) {
     this.capacity = capacity;
     this.tokens = capacity;
-    this.fillTime = fillTime;
-    this.interval = fillTime / capacity;
-
-    setInterval(() => {
-      if (this.tokens < this.capacity) {
-        this.tokens += 1;
-      }
-    }, this.interval);
+    this.fillRate = fillRate;
+    this.lastFillTime = Date.now();
   }
 
-  getToken() {
-    if (this.tokens > 0) {
-      this.tokens -= 1;
-      return true;
-    } else {
+  getToken(apply: number): boolean {
+    const now = Date.now();
+    const elapsedTime = now - this.lastFillTime;
+    this.tokens = Math.min( this.capacity, this.tokens + elapsedTime * (this.fillRate / 1000));
+    
+    if (this.tokens < apply) {
       return false;
+    } else {
+      this.tokens--;
+      this.lastFillTime = now;
+      return true;
     }
   }
 }
 
-const tokenBucket = new TokenBucket(100, 10000); // 每秒最多处理 10 个请求
+const tokenBucket = new TokenBucket(100, 100);
 
 export function rateLimiter(req: Request, res: Response, next: NextFunction) {
-  if (tokenBucket.getToken()) {
+  if (tokenBucket.getToken(1)) {
     next();
   } else {
     res.status(429).send('Too Many Requests');

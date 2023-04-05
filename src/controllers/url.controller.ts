@@ -25,6 +25,10 @@ export class UrlController {
     return `${this.redisPrefix}:code:${key}`;
   }
 
+  private getShortUrl(code: string): string {
+    return `http://127.0.0.1:3000/${code}`;
+  }
+
   public async create(req: Request, res: Response, next: NextFunction) {
     try {
       const url: string = req.body.url;
@@ -34,23 +38,23 @@ export class UrlController {
 
       const safeUrl = urlEncode(url);
       const urlRedisKey = this.getRedisUrlKey(safeUrl);
-      const urlCode: string | null = await this.redisService.get(urlRedisKey);
-      if(urlCode) {
-        res.json({ shortUrl: `${req.protocol}://${req.hostname}/${urlCode}`});
+      const code: string | null = await this.redisService.get(urlRedisKey);
+      if(code) {
+        res.json({ url: this.getShortUrl(code) });
         return;
       }
 
-      const existedUrl = await this.urlService.findByUrl(safeUrl);
-      if (existedUrl) {
-        await this.redisService.setEx(urlRedisKey, existedUrl.code);
-        res.json({ shortUrl: `${req.protocol}://${req.hostname}/${existedUrl.code}`});
+      const existed = await this.urlService.findByUrl(safeUrl);
+      if (existed) {
+        await this.redisService.setEx(urlRedisKey, existed.code);
+        res.json({ url: this.getShortUrl(existed.code) });
         return;
       }
 
-      const createUrl = await this.urlService.createByOption(safeUrl, {});
-      await this.redisService.setEx(urlRedisKey, createUrl.code);
+      const create = await this.urlService.createByOption(safeUrl, {});
+      await this.redisService.setEx(urlRedisKey, create.code);
 
-      res.json({ shortUrl: `${req.protocol}://${req.hostname}/${createUrl.code}`});
+      res.json({ url: this.getShortUrl(create.code) });
     } catch (error) {
       next(error);
     }

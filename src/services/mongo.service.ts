@@ -9,6 +9,7 @@ import { logger } from "../utils/logger";
 @Service()
 export class MongoService extends EventEmitter{
   private mongoConnection!: Connection;
+  public ready = true;
 
   constructor() {
     super();
@@ -18,6 +19,9 @@ export class MongoService extends EventEmitter{
   }
 
   async init() {
+    if (this.mongoConnection) {
+      return this.mongoConnection;
+    }
     try {
       await mongoose.connect(config.get('mongo.uri'), config.get('mongo.options')).then(()=> {
         logger.info(`=================================`);

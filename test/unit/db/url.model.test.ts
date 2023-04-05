@@ -8,8 +8,11 @@ import { Container } from 'typedi';
 describe('Url UrlModel', () => {
   const url = 'www.baidu.com'; 
   let urlModel: Url;
-  const mongoService: MongoService = Container.get(MongoService);
+  let mongoService: MongoService;
 
+  beforeAll(()=> {
+    mongoService = Container.get(MongoService);
+  });
   it('UrlModel create and delete', async () => {
     const code = '2131231';
     urlModel = await UrlModel.create({

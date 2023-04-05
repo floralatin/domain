@@ -4,8 +4,8 @@ export default {
   mongo: {
     uri: process.env.MONGO_URI,
     options: {
-      maxIdleTimeMS: 30000,
-      minPoolSize: 1
+      connectTimeoutMS: 10000,
+      minPoolSize: 5
     },
   },
   redis: {
