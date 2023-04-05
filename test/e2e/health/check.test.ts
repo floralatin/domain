@@ -9,11 +9,10 @@ describe('Health check', () => {
   describe(`[GET] ${endpoint}`, () => {
 
     it('ping is true', async () => {
-      const result = await request(app.getServer())
+      const { body } = await request(app.getServer())
         .get(endpoint)
         .expect(200);
-      console.log('ping',result);
-      expect(result).toEqual(true);
+      expect(body).toEqual('pong');
     });
    
   });

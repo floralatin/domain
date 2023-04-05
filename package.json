@@ -9,7 +9,7 @@
     "start": "npm run build && NODE_ENV=production node bin/server.js",
     "dev": "cross-env NODE_ENV=development nodemon --exec ts-node --files bin/server.ts",
     "test": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --coverage --forceExit --detectOpenHandles",
-    "test:integration": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --config ./test/jest.integration.js --coverage --forceExit --detectOpenHandles",
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --config ./test/jest.e2e.js --coverage --forceExit --detectOpenHandles",
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --config ./test/jest.unit.js  --coverage --forceExit --detectOpenHandles",
     "lint": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:fix": "npm run lint -- --fix",
