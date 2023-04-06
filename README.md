@@ -32,3 +32,25 @@ npm i
 ```bash
 npm run dev
 ```
+
+## Test
+
+### You can see the test result in coverage files
+
+#### 1. Docker compose up
+
+```
+docker compose up --build
+```
+
+#### 2. Test unit
+
+```
+npm run test:unit
+```
+
+#### 3. Test e2e
+
+```
+npm run test:e2e
+```
