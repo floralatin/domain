@@ -6,20 +6,21 @@ import { Url } from '../../../src/interfaces/url.interface';
 import { UrlModel } from "../../../src/models/url.model";
 import { Container } from 'typedi';
 
-describe('service urlService', () => {
+describe('Service: urlService', () => {
   const url = 'www.baidu.com/unit'; 
   let urlInstance: Url;
   let mongoService: MongoService;
   let urlService: UrlService;
 
-
   beforeAll(async()=> {
     mongoService = Container.get(MongoService);
+    await mongoService.connect();
     urlService = Container.get(UrlService);
   });
 
   afterAll(async () => {
     await UrlModel.deleteOne({ uid: urlInstance.uid });
+    await mongoService.disconnect();
   });
     
   it('urlService createByOption', async () => {
@@ -45,15 +46,6 @@ describe('service urlService', () => {
       expect(result.uid).toEqual(urlInstance.uid);
     }
         
-  });
-
-  it('urlService findById', async () => {
-    const result = await urlService.findByUid(urlInstance.uid);
-
-    expect(result).toBeDefined();
-    if (result) {
-      expect(result.uid).toEqual(urlInstance.uid);
-    }
   });
 
 });

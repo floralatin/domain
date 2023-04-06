@@ -5,6 +5,8 @@ import app from '../../../src/server';
 import urlService from '../../../src/services/url.service';
 import { Url } from '../../../src/interfaces/url.interface';
 import { UrlModel } from '../../../src/models/url.model';
+import mongoService from "../../../src/services/mongo.service";
+import redisService from "../../../src/services/redis.service";
 
 
 describe('Redirect to origin url, API: /:code', () => {
@@ -18,6 +20,8 @@ describe('Redirect to origin url, API: /:code', () => {
 
   afterAll(async () => {
     await UrlModel.deleteOne({ uid: urlModel.uid });
+    await mongoService.disconnect();
+    await redisService.disconnect();
   });
 
   describe(`[GET] ${endpoint}:code`, () => {

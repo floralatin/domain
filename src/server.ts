@@ -9,8 +9,8 @@ import helmet from "helmet";
 import cors from "cors";
 import bodyParser from 'body-parser';
 import compression from "compression";
-import { rateLimiter } from "./middlewares/rateLimiter.middleware";
-import { ipLimiter } from "./middlewares/limiter.middleware";
+import { rate } from "./middlewares/limiter.middleware";
+import { isBlack } from "./middlewares/black.middleware";
 import { errorHandler } from "./middlewares/error.middleware";
 import { asyncHook } from "./middlewares/asyncHook.middleware";
 
@@ -33,25 +33,9 @@ export class App {
 
   constructor() {
     this.app = express();
-    this.init();
     this.initializeMiddlewares();
     this.initializeRoutes();
     this.initializeErrorHandling();
-  }
-
-  private init() {
-    this.app.on('error', (error)=> {
-      logger.error('App error!', error);
-      this.ready = false;
-    });
-    this.app.on('close', ()=> {
-      logger.info('App close!');
-      this.ready = false;
-    });
-    this.app.on('listening', ()=> {
-      logger.info('App start!');
-      this.ready = true;
-    });
   }
 
   private initializeMiddlewares() {
@@ -59,8 +43,8 @@ export class App {
     this.app.use(cors());
     this.app.use(helmet());
     this.app.use(compression());
-    this.app.use(rateLimiter);
-    this.app.use(ipLimiter);
+    this.app.use(rate);
+    this.app.use(isBlack);
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: false }));
   }

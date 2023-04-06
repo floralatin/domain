@@ -3,6 +3,8 @@ import "reflect-metadata";
 import request from 'supertest';
 import app from '../../../src/server';
 import urlService from '../../../src/services/url.service';
+import mongoService from '../../../src/services/mongo.service';
+import redisService from '../../../src/services/redis.service';
 import { User } from '../../../src/interfaces/user.interface';
 import { UserModel } from '../../../src/models/user.model';
 import { generateToken } from '../../../src/utils/jwt';
@@ -28,6 +30,8 @@ describe('URL create short url, API: /url', () => {
   afterAll(async () => {
     await urlService.deleteByCode(code);
     await UserModel.deleteOne({ uid: userModel.uid });
+    await mongoService.disconnect();
+    await redisService.disconnect();
   });
 
   describe(`[POST] ${endpoint}`, () => {

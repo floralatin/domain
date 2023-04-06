@@ -11,7 +11,7 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --coverage --forceExit --detectOpenHandles",
     "test:e2e": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --config ./test/jest.e2e.js --coverage --forceExit --detectOpenHandles",
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=testing jest --config ./test/jest.unit.js  --coverage --forceExit --detectOpenHandles",
-    "lint": "eslint \"{src,test}/**/*.{ts,js}\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
     "prepare": "husky install"
   },

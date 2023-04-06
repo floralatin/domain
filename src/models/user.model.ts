@@ -35,6 +35,6 @@ const userSchema: Schema = new Schema({
   },
 });
 
-userSchema.index({ username: 'hashed' });
+userSchema.index({ username: 'hashed' }, { unique: true});
 
 export const UserModel = model<User & Document>("User", userSchema);

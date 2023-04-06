@@ -1,24 +1,38 @@
 import { isCode, isUrl } from '../../../src/utils/validator';
 
-describe('Utils validator', () => {
+describe('utils: validator', ()=> {
 
-  it('validator isCode failed', async () => {
-    const result = isCode('1212121212');
-    expect(result).toEqual(false);
-  });
-
-  it('validator isCode success', async () => {
-    const result = isCode('121212');
-    expect(result).toEqual(true);
+  describe('isUrl', () => {
+    it('should return true for a valid URL', () => {
+      expect(isUrl('https://www.example.com')).toBe(true);
+    });
+  
+    it('should return false for an invalid URL', () => {
+      expect(isUrl('not_a_url')).toBe(false);
+    });
+  
+    it('should return false for an empty string', () => {
+      expect(isUrl('')).toBe(false);
+    });
   });
   
-  it('validator isUrl failed', async () => {
-    const result = isUrl('www.baidu.com/<script>alert(1212)</script>');
-    expect(result).toEqual(false);
+  describe('isCode', () => {
+    it('should return true for a valid code', () => {
+      expect(isCode('AbCd1234')).toBe(true);
+    });
+  
+    it('should return false for a code longer than 8 characters', () => {
+      expect(isCode('123456789')).toBe(false);
+    });
+  
+    it('should return false for a code containing special characters', () => {
+      expect(isCode('1234!@#$')).toBe(false);
+    });
+  
+    it('should return false for an empty string', () => {
+      expect(isCode('')).toBe(false);
+    });
   });
-
-  it('validator isUrl success', async () => {
-    const result = isUrl('www.baidu.com');
-    expect(result).toEqual(true);
-  });
+  
 });
+

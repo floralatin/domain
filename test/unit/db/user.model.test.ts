@@ -1,27 +1,78 @@
 import "reflect-metadata";
-import { User } from '../../../src/interfaces/user.interface';
 import { UserModel } from '../../../src/models/user.model';
-import { MongoService } from '../../../src/services/mongo.service';
-import { v4 as uuidV4 } from 'uuid';
-import { Container } from 'typedi';
+import mongoService from '../../../src/services/mongo.service';
+import { User } from '../../../src/interfaces/user.interface';
 
-describe('User UserModel', () => {
-  let userModel: User;
-  const mongoService: MongoService = Container.get(MongoService);
+describe('DB: UserModel', () => {
+  let user: User;
 
-  it('UserModel create and delete', async () => {
-    const username = '2131231';
-    userModel = await UserModel.create({
-      uid: uuidV4(),
-      password: '121212',
-      username: username
-    });
-    expect(userModel.username).toEqual(username);
-
-    const result = await UserModel.deleteOne({
-      uid: userModel.uid
-    });
-    expect(result).toMatchObject({ acknowledged: true, deletedCount: 1 });
+  beforeAll(async () => {
+    await mongoService.connect();
+  });
+  
+  afterAll(async () => {
+    await mongoService.disconnect();
   });
 
+  beforeEach(async () => {
+    if (user) {
+      await UserModel.deleteOne({uid: user.uid });
+    }
+  });
+
+  describe('create', () => {
+    it('should create a new user', async () => {
+
+      const userData = {
+        uid: '123456',
+        username: 'testuser',
+        password: 'password123',
+        meta: {},
+        createTime: new Date(),
+        updateTime: new Date(),
+        available: true,
+      } as User;
+
+      user = await UserModel.create(userData);
+      expect(user).toMatchObject(userData);
+
+    });
+
+    it('should fail if username is not unique', async () => {
+      const userData = {
+        uid: '111111',
+        username: 'existinguser',
+        password: 'password123',
+        meta: {},
+        createTime: new Date(),
+        updateTime: new Date(),
+        available: true,
+      } as User;
+      user = await UserModel.create(userData);
+
+      const userData2 = {
+        uid: '222222',
+        username: 'existinguser',
+        password: 'password456',
+        meta: {},
+        createTime: new Date(),
+        updateTime: new Date(),
+        available: true,
+      } as User;
+      await expect(UserModel.create(userData2)).rejects.toThrowError();
+    });
+
+    it('should fail if uid is missing', async () => {
+      const userData = {
+        username: 'testuser',
+        password: 'password123',
+        meta: {},
+        createTime: new Date(),
+        updateTime: new Date(),
+        available: true,
+      } as User;
+      await expect(UserModel.create(userData)).rejects.toThrowError();
+    });
+  });
+  
 });

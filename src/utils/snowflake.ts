@@ -43,7 +43,6 @@ export class Snowflake {
     } else {
       this.sequence = 0n;
     }
-
     this.lastTimestamp = timestamp;
 
     return (timestamp << this.timestampShift) |

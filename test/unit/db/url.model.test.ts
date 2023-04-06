@@ -1,31 +1,44 @@
-import "reflect-metadata";
-import { Url } from '../../../src/interfaces/url.interface';
-import { UrlModel } from '../../../src/models/url.model';
-import { MongoService } from '../../../src/services/mongo.service';
-import { v4 as uuidV4 } from 'uuid';
-import { Container } from 'typedi';
+import { UrlModel } from '.../../../src/models/url.model';
+import mongoService from '../../../src/services/mongo.service';
 
-describe('Url UrlModel', () => {
-  const url = 'www.baidu.com'; 
-  let urlModel: Url;
-  let mongoService: MongoService;
+describe('DB: UrlModel', () => {
 
-  beforeAll(()=> {
-    mongoService = Container.get(MongoService);
+  beforeAll(async () => {
+    await mongoService.connect();
   });
-  it('UrlModel create and delete', async () => {
-    const code = '2131231';
-    urlModel = await UrlModel.create({
-      uid: uuidV4(),
-      code: '2131231',
-      url: url,
-    });
-    expect(urlModel.code).toEqual(code);
 
-    const result = await UrlModel.deleteOne({
-      uid: urlModel.uid
+  afterAll(async () => {
+    await mongoService.disconnect();
+  });
+
+  afterEach(async () => {
+    await UrlModel.deleteMany({});
+  });
+
+  it('should create a new URL document', async () => {
+    const newUrl = new UrlModel({
+      uid: '1',
+      code: 'abc123',
+      url: 'https://example.com',
+      meta: {
+        foo: 'bar',
+      },
+      expiredTime: new Date(),
+      createTime: new Date(),
+      updateTime: new Date(),
+      available: true,
     });
-    expect(result).toMatchObject({ acknowledged: true, deletedCount: 1 });
+
+    const savedUrl = await newUrl.save();
+
+    expect(savedUrl.uid).toBe('1');
+    expect(savedUrl.code).toBe('abc123');
+    expect(savedUrl.url).toBe('https://example.com');
+    expect(savedUrl.meta).toMatchObject({ foo: 'bar' });
+    expect(savedUrl.expiredTime).toEqual(expect.any(Date));
+    expect(savedUrl.createTime).toEqual(expect.any(Date));
+    expect(savedUrl.updateTime).toEqual(expect.any(Date));
+    expect(savedUrl.available).toBe(true);
   });
 
 });

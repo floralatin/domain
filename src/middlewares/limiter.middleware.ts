@@ -1,42 +1,39 @@
-import { Container } from "typedi";
-import { RedisService } from "../services/redis.service";
-import { Request, Response, NextFunction } from "express";
-import { ApplicationError } from "../helpers/application.err";
+import { Request, Response, NextFunction } from 'express';
 
-const redis = Container.get(RedisService);
-function getLimitKey(ip: string) {
-  return `limit:ip:${ip}:${new Date().toISOString().slice(0, 10)}`;
-}
+export class TokenBucket {
+  private capacity: number;
+  private tokens: number;
+  private fillRate: number;
+  private lastFillTime: number;
 
-async function autoIncrement(ip: string): Promise<number> {
-  const key = getLimitKey(ip);
-  await redis.setExNx(key, 0, 60 * 60 * 24);
-  return await redis.autoIncr(key);
-}
-
-async function isLimit(ip: string, capacity: number): Promise<boolean> {
-  const count = await autoIncrement(ip);
-  if (count > capacity) {
-    return true;
+  constructor(capacity: number, fillRate: number) {
+    this.capacity = capacity;
+    this.tokens = capacity;
+    this.fillRate = fillRate;
+    this.lastFillTime = Date.now();
   }
-  return false;
+
+  public getToken(apply: number): boolean {
+    const now = Date.now();
+    const elapsedTime = now - this.lastFillTime;
+    this.tokens = Math.min( this.capacity, this.tokens + elapsedTime * (this.fillRate / 1000));
+    
+    if (this.tokens < apply) {
+      return false;
+    } else {
+      this.tokens--;
+      this.lastFillTime = now;
+      return true;
+    }
+  }
 }
 
-export const ipLimiter = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const key = (req as any).user ? (req as any).uid: req.ip;
-    const capacity = (req as any).user ? 2000 : 500;
-    if (await isLimit(key, capacity)) {
-      next(new ApplicationError(429, "Too Many Requests"));
-    } else {
-      await autoIncrement(key);
-      next();
-    }
-  } catch (error) {
-    next(error);
+const tokenBucket = new TokenBucket(100, 100);
+
+export const rate = (req: Request, res: Response, next: NextFunction) => {
+  if (tokenBucket.getToken(1)) {
+    next();
+  } else {
+    res.status(429).send('Too Many Requests');
   }
 };

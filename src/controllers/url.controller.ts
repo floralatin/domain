@@ -1,20 +1,15 @@
 import { Request, Response, NextFunction } from "express";
-import Container, { Inject, Service } from "typedi";
+import Container, { Service } from "typedi";
 
 import { ApplicationError } from "../helpers/application.err";
 import { isCode, isUrl } from "../utils/validator";
 
-import { RedisService } from "../services/redis.service";
-import { UrlService } from "../services/url.service";
+import redisService from "../services/redis.service";
+import urlService from "../services/url.service";
 import { urlDecode, urlEncode } from "../utils/transfer";
 
 @Service()
 export class UrlController {
-
-  @Inject()
-  private urlService: UrlService = Container.get(UrlService);
-  @Inject()
-  private redisService: RedisService = Container.get(RedisService);
   private redisPrefix = 'url';
 
   private getRedisUrlKey(key: string): string {
@@ -38,21 +33,21 @@ export class UrlController {
 
       const safeUrl = urlEncode(url);
       const urlRedisKey = this.getRedisUrlKey(safeUrl);
-      const code: string | null = await this.redisService.get(urlRedisKey);
+      const code: string | null = await redisService.get(urlRedisKey);
       if(code) {
         res.json({ url: this.getShortUrl(code) });
         return;
       }
 
-      const existed = await this.urlService.findByUrl(safeUrl);
+      const existed = await urlService.findByUrl(safeUrl);
       if (existed) {
-        await this.redisService.setEx(urlRedisKey, existed.code);
+        await redisService.setEx(urlRedisKey, existed.code);
         res.json({ url: this.getShortUrl(existed.code) });
         return;
       }
 
-      const create = await this.urlService.createByOption(safeUrl, {});
-      await this.redisService.setEx(urlRedisKey, create.code);
+      const create = await urlService.createByOption(safeUrl, {});
+      await redisService.setEx(urlRedisKey, create.code);
 
       res.json({ url: this.getShortUrl(create.code) });
     } catch (error) {
@@ -67,19 +62,19 @@ export class UrlController {
         throw new ApplicationError(400, "Invalid Code");
       }
       const codeRedisKey = this.getRedisCodeKey(code);
-      const originUrl: string | null = await this.redisService.get(codeRedisKey);
+      const originUrl: string | null = await redisService.get(codeRedisKey);
       if (originUrl) {
         res.redirect(302, originUrl);
         return;
       }
 
-      const urlInstance = await this.urlService.findByCode(code);
+      const urlInstance = await urlService.findByCode(code);
       if (!urlInstance) {
         throw new ApplicationError(404, "URL not existed");
       }
 
       const decodeUrl = urlDecode(urlInstance.url);
-      await this.redisService.setEx(codeRedisKey, decodeUrl);
+      await redisService.setEx(codeRedisKey, decodeUrl);
       res.redirect(302, decodeUrl);
     } catch (error) {
       next(error);
@@ -87,3 +82,6 @@ export class UrlController {
   }
 
 }
+
+const urlController = Container.get(UrlController);
+export default urlController;

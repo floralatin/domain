@@ -1,18 +1,17 @@
 import { Router } from "express";
-import { Container, Inject, Service } from "typedi";
-import { UrlController } from "../controllers/url.controller";
+import { Service, Container } from "typedi";
 import { auth } from "../middlewares/auth.middleware";
-
+import { UrlController }from "../controllers/url.controller";
 
 @Service()
 export class UrlRoutes {
   public path = "/";
   private router: Router;
-  @Inject()
-  private urlController: UrlController = Container.get(UrlController);
+  private urlController: UrlController;
 
   constructor() {
     this.router = Router();
+    this.urlController = Container.get(UrlController);
     this.initializeRoutes();
   }
 
@@ -32,3 +31,6 @@ export class UrlRoutes {
     return this.router;
   }
 }
+
+const urlRoutes = Container.get(UrlRoutes);
+export default urlRoutes;

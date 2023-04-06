@@ -37,9 +37,9 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
           (req as any).user = JSON.parse(user);
         } else {
           user = await UserModel.findOne({ uid: data.uid });
+          (req as any).user = user;
           await redisService.setEx(`auth:${data.uid}`, JSON.stringify(user));
         }
-
         next();
       } else {
         next(new ApplicationError(401, "Wrong authentication token"));

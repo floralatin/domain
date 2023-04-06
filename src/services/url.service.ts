@@ -19,10 +19,6 @@ export class UrlService {
     return code.substring(code.length - 8);
   }
 
-  public async findByUid(uid: string): Promise<Url | null> {
-    return await UrlModel.findOne({ uid: {$eq: uid } });
-  }
-
   public async findByUrl(url: string): Promise<Url | null> {
     return await UrlModel.findOne({ url: {$eq: url } });
   }

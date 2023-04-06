@@ -1,6 +1,6 @@
 export default {
   port: 3000,
-  secretKey: "121212",
+  secretKey: "secret-key",
   mongo: {
     uri: "mongodb://127.0.0.1:27017/domain",
     options: {
