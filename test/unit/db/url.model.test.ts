@@ -23,6 +23,7 @@ describe('DB: UrlModel', () => {
       meta: {
         foo: 'bar',
       },
+      userUid: '121212',
       expiredTime: new Date(),
       createTime: new Date(),
       updateTime: new Date(),

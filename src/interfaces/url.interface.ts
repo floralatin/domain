@@ -3,6 +3,7 @@ export interface Url extends Document {
   uid: string;
   code: string;
   url: string;
+  userUid: string;
   meta: object;
   expiredTime: Date;
   createTime: Date;

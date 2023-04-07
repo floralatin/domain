@@ -1,9 +1,7 @@
 import { NextFunction, Response, Request } from "express";
-import { ApplicationError } from "../helpers/application.err";
-import { UserModel } from "../models/user.model";
-import { verifyToken } from '../utils/jwt';
 import config from '../config'; 
-import redisService from '../services/redis.service'; 
+import { ApplicationError } from "../helpers/application.err";
+import { verifyToken } from '../utils/jwt';
 import { User } from "../interfaces/user.interface";
 
 const getAuthorization = (req: Request) => {
@@ -22,24 +20,12 @@ const getAuthorization = (req: Request) => {
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (config.isDevelopment()) {
-      next();
-      return;
-    }
 
     const authorization = getAuthorization(req);
     if (authorization) {
-      const data = (await verifyToken(authorization, config.get('secretKey')))as User;
-      if (data) {
-
-        let user = await redisService.get(`auth:${data.uid}`);
-        if (user) {
-          (req as any).user = JSON.parse(user);
-        } else {
-          user = await UserModel.findOne({ uid: data.uid });
-          (req as any).user = user;
-          await redisService.setEx(`auth:${data.uid}`, JSON.stringify(user));
-        }
+      const user = (await verifyToken(authorization, config.get('secretKey')))as User;
+      if (user) {
+        (req as any).user = user;
         next();
       } else {
         next(new ApplicationError(401, "Wrong authentication token"));

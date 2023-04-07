@@ -17,8 +17,9 @@ export class UrlService {
     return code.substring(code.length - 8);
   }
 
-  public async findByUrl(url: string): Promise<Url | null> {
-    return await UrlModel.findOne({ url: {$eq: url } });
+  public async findByOption(url: string, userUid: string): Promise<Url | null> {
+
+    return await UrlModel.findOne({ url: {$eq: url }, userUid: {$eq: userUid} });
   }
 
 
@@ -26,12 +27,13 @@ export class UrlService {
     return await UrlModel.findOne({ code: {$eq: code } });
   }
 
-  public async createByOption(url: string, meta: object): Promise<Url> {
+  public async createByOption(url: string, userUid:string, meta: object): Promise<Url> {
     const codeData = { url: url, meta } as Url;
 
     const snowflakeId = this.snowflake.nextId();
     codeData.code = this.getCode(snowflakeId);
     codeData.uid =  `${snowflakeId}`;
+    codeData.userUid = userUid;
     
     return await UrlModel.create({ ...codeData });
   }

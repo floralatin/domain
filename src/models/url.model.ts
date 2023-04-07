@@ -18,6 +18,11 @@ const urlSchema: Schema = new Schema({
     required: true,
     trim: true,
   },
+  userUid: {
+    type: String,
+    required: true,
+    unique: true
+  },
   meta: {
     type: Object,
     default: {},
@@ -42,5 +47,6 @@ const urlSchema: Schema = new Schema({
 
 urlSchema.index({ url: 'hashed' });
 urlSchema.index({ code: 1 });
+urlSchema.index({ uid: 1 }, { unique: true });
 
 export const UrlModel = model<Url & Document>("Url", urlSchema);

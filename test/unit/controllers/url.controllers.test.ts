@@ -9,6 +9,7 @@ import { urlEncode } from "../../../src/utils/transfer";
 describe("Controllers: UrlController", () => {
   const urlService =  urlServiceInstance as jest.Mocked<UrlService>;
   const redisService = redisServiceInstance as jest.Mocked<RedisService>;
+  const user = { uid: '1212121' };
 
   afterEach(() => {
     jest.resetAllMocks();
@@ -22,7 +23,7 @@ describe("Controllers: UrlController", () => {
     it("should return short url if original url already exists", async () => {
       const url = "https://www.google.com";
       const code = "abc123";
-      const req: any = { body: { url } };
+      const req: any = { body: { url }, user };
       const res: any = { json: jest.fn() };
       const next: any = jest.fn();
 
@@ -31,32 +32,32 @@ describe("Controllers: UrlController", () => {
       await urlController.create(req, res, next);
 
       const safeUlr = urlEncode(url);
-      expect(redisService.get).toBeCalledWith(`url:origin:${safeUlr}`);
+      expect(redisService.get).toBeCalledWith(`url:origin:${user.uid}:${safeUlr}`);
       expect(res.json).toBeCalledWith({ url: `http://127.0.0.1:3000/${code}` });
     });
 
     it("should return short url if original url does not exist", async () => {
       const url = "https://www.google.com";
       const code = "abc123";
-      const req: any = { body: { url } };
+      const req: any = { body: { url }, user };
       const res: any = { json: jest.fn() };
       const next: any = jest.fn();
 
-      jest.spyOn(urlService, "findByUrl").mockResolvedValue(null);
+      jest.spyOn(urlService, "findByOption").mockResolvedValue(null);
       jest.spyOn(urlService, "createByOption").mockResolvedValue({ code } as any);
       jest.spyOn(redisService, "setEx").mockResolvedValue("OK");
 
       await urlController.create(req, res, next);
       const safeUlr = urlEncode(url);
 
-      expect(urlService.findByUrl).toBeCalledWith(safeUlr);
-      expect(urlService.createByOption).toBeCalledWith(safeUlr, {});
-      expect(redisService.setEx).toBeCalledWith(`url:origin:${safeUlr}`, code);
+      expect(urlService.findByOption).toBeCalledWith(safeUlr, user.uid);
+      expect(urlService.createByOption).toBeCalledWith(safeUlr, user.uid, {});
+      expect(redisService.setEx).toBeCalledWith(`url:origin:${user.uid}:${safeUlr}`, code);
       expect(res.json).toBeCalledWith({ url: `http://127.0.0.1:3000/${code}` });
     });
 
     it("should throw error if url is not provided", async () => {
-      const req: any = { body: {} };
+      const req: any = { body: {}, user};
       const res: any = { json: jest.fn() };
       const next: any = jest.fn();
 
@@ -66,7 +67,7 @@ describe("Controllers: UrlController", () => {
     });
 
     it("should throw error if url is invalid", async () => {
-      const req: any = { body: { url: 'Invalid URL' } };
+      const req: any = { body: { url: 'Invalid URL' }, user };
       const res: any = { json: jest.fn() };
       const next: any = jest.fn();
       await urlController.create(req, res, next);

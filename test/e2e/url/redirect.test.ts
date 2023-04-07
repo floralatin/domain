@@ -13,9 +13,12 @@ describe('Redirect to origin url, API: /:code', () => {
   const endpoint = '/';
   const url = 'www.baidu.com';
   let urlModel: Url;
+  const user = {
+    uid: '12121212121',
+  };
 
   beforeAll(async () => {
-    urlModel = await urlService.createByOption(url, {});
+    urlModel = await urlService.createByOption(url, user.uid, {});
   });
 
   afterAll(async () => {

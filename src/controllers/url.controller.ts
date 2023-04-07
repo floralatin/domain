@@ -30,23 +30,24 @@ export class UrlController {
       if (!url || !isUrl(url)) {
         throw new ApplicationError(400, "Invalid URL");
       }
-
+      const userUid = (req as any).user.uid;
+      
       const safeUrl = urlEncode(url);
-      const urlRedisKey = this.getRedisUrlKey(safeUrl);
+      const urlRedisKey = this.getRedisUrlKey(`${userUid}:${safeUrl}`);
       const code: string | null = await redisService.get(urlRedisKey);
       if(code) {
         res.json({ url: this.getShortUrl(code) });
         return;
       }
 
-      const existed = await urlService.findByUrl(safeUrl);
+      const existed = await urlService.findByOption(safeUrl, userUid);
       if (existed) {
         await redisService.setEx(urlRedisKey, existed.code);
         res.json({ url: this.getShortUrl(existed.code) });
         return;
       }
 
-      const create = await urlService.createByOption(safeUrl, {});
+      const create = await urlService.createByOption(safeUrl, userUid, {});
       await redisService.setEx(urlRedisKey, create.code);
 
       res.json({ url: this.getShortUrl(create.code) });

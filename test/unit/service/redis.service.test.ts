@@ -4,8 +4,6 @@ import { Container } from 'typedi';
 
 describe('Service: urlService', () => {
   const exKey = 'test:exKey'; 
-  const exNxKey = 'test:exNxKey'; 
-  const autoKey = 'test:autoKey'; 
   const value = 'test123'; 
   const value2 = 'test1234'; 
   let redisService: RedisService;

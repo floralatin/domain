@@ -11,6 +11,9 @@ describe('Service: urlService', () => {
   let urlInstance: Url;
   let mongoService: MongoService;
   let urlService: UrlService;
+  const user = {
+    uid: '1212121',
+  };
 
   beforeAll(async()=> {
     mongoService = Container.get(MongoService);
@@ -24,8 +27,10 @@ describe('Service: urlService', () => {
   });
     
   it('urlService createByOption', async () => {
-    urlInstance = await urlService.createByOption(url, {});
+    urlInstance = await urlService.createByOption(url, user.uid, {});
+
     expect(urlInstance.url).toEqual(url);
+    expect(urlInstance.userUid).toEqual(user.uid);
   });
 
   it('urlService findByCode', async () => {
@@ -38,12 +43,13 @@ describe('Service: urlService', () => {
         
   });
 
-  it('urlService findByUrl', async () => {
-    const result = await urlService.findByUrl(urlInstance.url);
+  it('urlService findByOption', async () => {
+    const result = await urlService.findByOption(urlInstance.url, user.uid);
 
     expect(result).toBeDefined();
     if (result) {
       expect(result.uid).toEqual(urlInstance.uid);
+      expect(result.userUid).toEqual(user.uid);
     }
         
   });
