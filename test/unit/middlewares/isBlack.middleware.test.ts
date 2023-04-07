@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import redisService from '../../../src/services/redis.service';
-import { isBlack, RATE_LIMIT_MAX_REQUESTS } from '../../../src/middlewares/black.middleware';
+import { isBlack, RATE_LIMIT_MAX_REQUESTS, DAILY_TOTAL_LIMIT_MAX_REQUESTS } from '../../../src/middlewares/black.middleware';
 
 describe('Middleware: isBlack', () => {
   let req: Request;
@@ -8,9 +8,7 @@ describe('Middleware: isBlack', () => {
   let next: jest.Mock;
   let redisClient: any;
   const mockRequest = {
-    socket: {
-      remoteAddress: '127.0.0.1',
-    },
+    ip: '127.0.0.1',
   };
   
   const mockResponse = () => {
@@ -19,7 +17,6 @@ describe('Middleware: isBlack', () => {
     res.json = jest.fn().mockReturnValue(res);
     return res as Response;
   };
-  
 
   beforeAll(() => {
     redisClient = redisService.getClient();
@@ -60,13 +57,23 @@ describe('Middleware: isBlack', () => {
   });
 
   it('should return 403 if the user is blacklisted', async () => {
-    const key = `${req.socket.remoteAddress}:undefined`;
-    await redisClient.set(`black:${key}`, 1);
+    const key = `${req.ip}:undefined`;
+    await redisClient.set(redisService.getKey(`black:${key}`), 1);
 
     await isBlack(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted." });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should return 403 if the user daily requests max', async () => {
+    const key = `${req.ip}:undefined`;
+    await redisClient.set(redisService.getKey(`requests:total:${key}`), DAILY_TOTAL_LIMIT_MAX_REQUESTS);
+    await isBlack(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ message: "You are many request tody." });
     expect(next).not.toHaveBeenCalled();
   });
 

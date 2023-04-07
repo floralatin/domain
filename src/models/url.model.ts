@@ -38,7 +38,7 @@ const urlSchema: Schema = new Schema({
     type: Boolean,
     default: 1,
   },
-}, { shardKey: { code: 'hashed' } });
+}, { shardKey: { uid: 1 } });
 
 urlSchema.index({ url: 'hashed' });
 urlSchema.index({ code: 1 });

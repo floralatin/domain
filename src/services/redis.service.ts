@@ -27,7 +27,13 @@ export class RedisService {
       if(config.isProduction()) {
         this.client = createCluster(config.get("redis.nodes"));
       } else {
-        this.client = createClient(config.get("redis.node"));
+        this.client = createClient({
+          ...config.get("redis.node"),
+          options: {
+            prefix: 'myPrefix:'
+          },
+          pingInterval: 1000,
+        });
       }
       this.client.on('error', (error: any)=> {
         logger.error('Redis error:', error);
@@ -71,7 +77,7 @@ export class RedisService {
     }
   }
 
-  private getKey(key:string): string {
+  public getKey(key:string): string {
     return `${this.prefix}${key}`;
   }
 

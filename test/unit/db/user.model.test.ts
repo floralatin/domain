@@ -14,10 +14,8 @@ describe('DB: UserModel', () => {
     await mongoService.disconnect();
   });
 
-  beforeEach(async () => {
-    if (user) {
-      await UserModel.deleteOne({uid: user.uid });
-    }
+  afterEach(async () => {
+    await UserModel.deleteOne({uid: user.uid });
   });
 
   describe('create', () => {

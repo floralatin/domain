@@ -1,8 +1,8 @@
 export class Snowflake {
   private readonly epoch: bigint = 1672531200000n; // 2021-01-01T00:00:00Z
-  private readonly workerIdBits: bigint = 5n;
-  private readonly dataCenterIdBits: bigint = 5n;
-  private readonly sequenceBits: bigint = 12n;
+  private readonly workerIdBits: bigint = 6n;
+  private readonly dataCenterIdBits: bigint = 6n;
+  private readonly sequenceBits: bigint = 10n;
 
   private readonly maxWorkerId: bigint = (1n << this.workerIdBits) - 1n;
   private readonly maxDataCenterId: bigint = (1n << this.dataCenterIdBits) - 1n;

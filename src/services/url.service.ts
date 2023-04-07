@@ -3,8 +3,6 @@ import { UrlModel } from "../models/url.model";
 import { Url } from "../interfaces/url.interface";
 import { bigintToBase62 } from "../utils/transfer";
 import { Snowflake } from '../utils/snowflake';
-import { v4 as uuidV4 } from 'uuid';
-import { UserModel } from '../models/user.model';
 
 @Service()
 export class UrlService {
@@ -33,13 +31,13 @@ export class UrlService {
 
     const snowflakeId = this.snowflake.nextId();
     codeData.code = this.getCode(snowflakeId);
-    codeData.uid = uuidV4();
+    codeData.uid =  `${snowflakeId}`;
     
     return await UrlModel.create({ ...codeData });
   }
 
   public async deleteByCode(code: string) {
-    await UserModel.deleteOne({ code: {$eq: code}});
+    await UrlModel.deleteOne({ code: {$eq: code}});
   }
 
 }
