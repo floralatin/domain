@@ -1,5 +1,6 @@
 module.exports = {
   moduleFileExtensions: ['json', 'ts', 'js'],
+  preset: 'ts-jest',
   // 指定测试文件的后缀名为 .test.ts
   testMatch: [`**/test/**/*.{test,spec}.ts`],
   // 指定使用 ts-jest 来解析 TypeScript 代码

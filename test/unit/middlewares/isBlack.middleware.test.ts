@@ -52,7 +52,7 @@ describe('Middleware: isBlack', () => {
     }
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted." });
+    expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted.", status: 403 });
     expect(next).not.toHaveBeenCalledTimes(RATE_LIMIT_MAX_REQUESTS+1);
   });
 
@@ -63,17 +63,17 @@ describe('Middleware: isBlack', () => {
     await isBlack(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted." });
+    expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted.", status: 403 });
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('should return 403 if the user daily requests max', async () => {
+  it('should return 429 if the user daily requests max', async () => {
     const key = `${req.ip}:undefined`;
     await redisClient.set(redisService.getKey(`requests:total:${key}`), DAILY_TOTAL_LIMIT_MAX_REQUESTS);
     await isBlack(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: "You are many request tody." });
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(res.json).toHaveBeenCalledWith({ message: "Too Many Requests Tody.", status: 429 });
     expect(next).not.toHaveBeenCalled();
   });
 

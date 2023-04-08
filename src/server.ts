@@ -50,7 +50,6 @@ export class App {
   }
 
   private initializeRoutes() {
-   
     this.app.use(Router().get('/ping', (req: Request, res: Response) => {
       res.status(200).json('pong');
     }));

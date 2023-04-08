@@ -6,8 +6,8 @@ import { ObjectId } from "mongoose";
 @Service()
 export class UserService {
   
-  public async findById(_id: ObjectId): Promise<User | null> {
-    return await UserModel.findOne({ _id: {$eq: _id } });
+  public async findById(id: ObjectId): Promise<User | null> {
+    return await UserModel.findOne({ _id: {$eq: id } });
   }
 
 }
