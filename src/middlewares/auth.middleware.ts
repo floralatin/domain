@@ -21,6 +21,14 @@ const getAuthorization = (req: Request) => {
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
 
+    if (config.isDevelopment()){
+      (req as any).user = {
+        uid: 'test-1234'
+      };
+      next();
+      return;
+    }
+
     const authorization = getAuthorization(req);
     if (authorization) {
       const user = (await verifyToken(authorization, config.get('secretKey')))as User;

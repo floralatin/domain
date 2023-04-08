@@ -5,27 +5,26 @@ const urlSchema: Schema = new Schema({
   uid: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   code: {
     type: String,
     required: true,
     unique: true,
+    index: true,
     maxLength: 8,
   },
   url: {
     type: String,
     required: true,
     trim: true,
+    index: 'hashed'
   },
   userUid: {
     type: String,
     required: true,
     unique: true
-  },
-  meta: {
-    type: Object,
-    default: {},
   },
   expiredTime: {
     type: Date,
@@ -44,9 +43,5 @@ const urlSchema: Schema = new Schema({
     default: 1,
   },
 }, { shardKey: { uid: 1 } });
-
-urlSchema.index({ url: 'hashed' });
-urlSchema.index({ code: 1 });
-urlSchema.index({ uid: 1 }, { unique: true });
 
 export const UrlModel = model<Url & Document>("Url", urlSchema);

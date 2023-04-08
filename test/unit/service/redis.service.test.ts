@@ -1,19 +1,19 @@
 import "reflect-metadata";
-import { RedisService } from '../../../src/services/redis.service';
-import { Container } from 'typedi';
+import redisService from '../../../src/services/redis.service';
 
 describe('Service: urlService', () => {
   const exKey = 'test:exKey'; 
   const value = 'test123'; 
-  const value2 = 'test1234'; 
-  let redisService: RedisService;
+  const value2 = 'test1234';
+  let redisClient: any;
 
   beforeAll(async()=> {
-    redisService = Container.get(RedisService);
+    redisClient = redisService.getClient();
     await redisService.connect();
   });
 
   afterAll(async()=> {
+    await redisClient.flushDb('SYNC' as any);
     await redisService.disconnect();
   });
     

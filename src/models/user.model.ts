@@ -5,21 +5,23 @@ const userSchema: Schema = new Schema({
   uid: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true,
   },
   username: {
     type: String,
     required: true,
     unique: true,
+    index: true,
     trim: true,
   },
   password: {
     type: String,
     required: true,
   },
-  meta: {
-    type: Object,
-    default: {},
+  salt: {
+    type: String,
+    required: true,
   },
   createTime: {
     type: Date,
@@ -34,7 +36,5 @@ const userSchema: Schema = new Schema({
     default: 1,
   },
 });
-
-userSchema.index({ username: 'hashed' }, { unique: true});
 
 export const UserModel = model<User & Document>("User", userSchema);

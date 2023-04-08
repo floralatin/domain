@@ -3,7 +3,7 @@ export interface User extends Document {
   uid: string;
   username: string;
   password: string;
-  meta: object;
+  salt: string;
   createTime: Date;
   updateTime: Date;
   available: boolean;

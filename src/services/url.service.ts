@@ -27,19 +27,15 @@ export class UrlService {
     return await UrlModel.findOne({ code: {$eq: code } });
   }
 
-  public async createByOption(url: string, userUid:string, meta: object): Promise<Url> {
-    const codeData = { url: url, meta } as Url;
-
+  public async createByOption(url: string, userUid:string): Promise<Url> {
     const snowflakeId = this.snowflake.nextId();
-    codeData.code = this.getCode(snowflakeId);
-    codeData.uid =  `${snowflakeId}`;
-    codeData.userUid = userUid;
     
-    return await UrlModel.create({ ...codeData });
-  }
-
-  public async deleteByCode(code: string) {
-    await UrlModel.deleteOne({ code: {$eq: code}});
+    return await UrlModel.create({
+      uid: `${snowflakeId}`,
+      code: this.getCode(snowflakeId),
+      userUid: userUid,
+      url: url
+    });
   }
 
 }

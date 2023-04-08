@@ -1,25 +1,30 @@
 import "reflect-metadata";
 
 import urlController from "../../../src/controllers/url.controller";
-import urlServiceInstance, { UrlService } from "../../../src/services/url.service";
-import redisServiceInstance, { RedisService } from "../../../src/services/redis.service";
+import urlService from "../../../src/services/url.service";
+import redisService from "../../../src/services/redis.service";
+import statisticsService from "../../../src/services/statistics.service";
+
 import { ApplicationError } from "../../../src/helpers/application.err";
+import { Statistics } from "../../../src/interfaces/statistics.interface";
 import { urlEncode } from "../../../src/utils/transfer";
 
+jest.mock('../../../src/services/mongo.service');
+jest.mock('../../../src/services/redis.service');
+jest.mock('../../../src/services/url.service');
+jest.mock('../../../src/services/statistics.service');
+
 describe("Controllers: UrlController", () => {
-  const urlService =  urlServiceInstance as jest.Mocked<UrlService>;
-  const redisService = redisServiceInstance as jest.Mocked<RedisService>;
-  const user = { uid: '1212121' };
+  const user = {
+    uid: '12121',
+    username: '12121',
+  };
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  afterAll(async () => {
-    redisService.disconnect();
-  });
-
-  describe("create method", () => {
+  describe("create", () => {
     it("should return short url if original url already exists", async () => {
       const url = "https://www.google.com";
       const code = "abc123";
@@ -51,7 +56,7 @@ describe("Controllers: UrlController", () => {
       const safeUlr = urlEncode(url);
 
       expect(urlService.findByOption).toBeCalledWith(safeUlr, user.uid);
-      expect(urlService.createByOption).toBeCalledWith(safeUlr, user.uid, {});
+      expect(urlService.createByOption).toBeCalledWith(safeUlr, user.uid);
       expect(redisService.setEx).toBeCalledWith(`url:origin:${user.uid}:${safeUlr}`, code);
       expect(res.json).toBeCalledWith({ url: `http://127.0.0.1:3000/${code}` });
     });
@@ -78,32 +83,42 @@ describe("Controllers: UrlController", () => {
 
   describe("redirect", () => {
     it("should redirect to original url if code exists in Redis cache", async () => {
-      const req: any = { params: { code: "abc123" } };
+      const req: any = { params: { code: "abc123" }, header: jest.fn(), ip: '127.0.0.1' };
       const res: any = { redirect: jest.fn() };
       const next: any = jest.fn();
-      const mockOriginUrl = "http://example.com";
-      jest.spyOn(redisService, "get").mockResolvedValue(mockOriginUrl);
+      const mockOriginUrl = {
+        url: "http://example.com",
+        code: 'abc123',
+        uid: '1231231',
+      };
+      jest.spyOn(redisService, "get").mockResolvedValue(JSON.stringify(mockOriginUrl));
 
       await urlController.redirect(req, res, next);
 
       expect(redisService.get).toHaveBeenCalledWith("url:code:abc123");
-      expect(res.redirect).toHaveBeenCalledWith(302, mockOriginUrl);
+      expect(res.redirect).toHaveBeenCalledWith(302, mockOriginUrl.url);
       expect(next).not.toHaveBeenCalled();
     });
 
     it("should redirect to original url if code exists in database", async () => {
-      const req: any = { params: { code: "abc123" } };
+      const req: any = { params: { code: "abc123"  }, header: jest.fn(), ip: '127.0.0.1' };
       const res: any = { redirect: jest.fn() };
       const next: any = jest.fn();
-      const mockOriginUrl = "http://example.com";
+      const mockOriginUrl = {
+        url:  "http://example.com",
+        code: 'abc123',
+        uid: '1231231',
+      };
       jest.spyOn(redisService, "get").mockResolvedValue(null);
-      jest.spyOn(urlService, "findByCode").mockResolvedValue({ url: mockOriginUrl } as any);
+      jest.spyOn(redisService, "setEx").mockResolvedValue(null);
+      jest.spyOn(urlService, "findByCode").mockResolvedValue(mockOriginUrl as any);
+      jest.spyOn(statisticsService, "createByOption").mockResolvedValue({} as Statistics);
 
       await urlController.redirect(req, res, next);
 
       expect(redisService.get).toHaveBeenCalledWith("url:code:abc123");
       expect(urlService.findByCode).toHaveBeenCalledWith("abc123");
-      expect(res.redirect).toHaveBeenCalledWith(302, mockOriginUrl);
+      expect(res.redirect).toHaveBeenCalledWith(302, mockOriginUrl.url);
       expect(next).not.toHaveBeenCalled();
     });
 

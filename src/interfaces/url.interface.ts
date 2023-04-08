@@ -4,8 +4,7 @@ export interface Url extends Document {
   code: string;
   url: string;
   userUid: string;
-  meta: object;
-  expiredTime: Date;
+  expiredTime?: Date;
   createTime: Date;
   updateTime: Date;
   available: boolean;

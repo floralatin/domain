@@ -20,7 +20,7 @@ describe('Redirect to origin url, API: /:code', () => {
   let redisClient: any;
 
   beforeAll(async () => {
-    urlModel = await urlService.createByOption(url, user.uid, {});
+    urlModel = await urlService.createByOption(url, user.uid);
     redisClient = redisService.getClient();
     await redisClient.flushDb('SYNC' as any);
   });
