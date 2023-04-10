@@ -1,10 +1,10 @@
-import Container, { Service } from "typedi";
 import { UrlModel } from "../models/url.model";
 import { Url } from "../interfaces/url.interface";
 import { bigintToBase62 } from "../utils/transfer";
 import { Snowflake } from '../utils/snowflake';
+import { container, singleton } from 'tsyringe';
 
-@Service()
+@singleton()
 export class UrlService {
   private snowflake: Snowflake; 
 
@@ -39,5 +39,5 @@ export class UrlService {
   }
 
 }
-const urlService = Container.get(UrlService);
+const urlService = container.resolve(UrlService);
 export default urlService;

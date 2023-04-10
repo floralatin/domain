@@ -1,10 +1,10 @@
 import validator from 'validator';
 export function isUrl(url: string): boolean {
   try {
-    if(!validator.isURL(url)) {
-      return false;
+    if(validator.isURL(url)) {
+      return true;
     }
-    return true;
+    return false;
   } catch (error) {
     return false;
   }

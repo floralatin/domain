@@ -1,49 +1,47 @@
-import Container, { Service } from "typedi";
 import mongoose, { Connection, Mongoose } from "mongoose";
+import { container, singleton } from 'tsyringe';
 
 import config from "../config";
 import { logger } from "../utils/logger";
 
-@Service()
+
+@singleton()
 export class MongoService{
-  private mongoConnection!: Connection;
-  private mongoClient!: Mongoose;
+  public mongoConnection!: Connection;
+  public mongoClient!: Mongoose;
   public ready = false;
 
   constructor() {
-    this.init().then(async()=> {
-      await this.connect();
-    }).catch(error => {
-      logger.error(`MongoService error: ${error}`);
-    });
+    this.init();
   }
 
-  async init() {
-    this.mongoClient = mongoose;
-    this.mongoConnection = mongoose.connection;
-
-    this.mongoConnection.on('error', (error: any)=> {
-      logger.error(`MongoDB error: ${error}`);
+  init() {
+    try {
+      this.mongoClient = mongoose;
+      this.mongoConnection = this.mongoClient.connection;
+      this.mongoConnection.on('error', (error: any)=> {
+        logger.error(`MongoDB error: ${error}`);
+        this.ready = false;
+      });
+      this.mongoConnection.on('connected', ()=> {
+        logger.info(`=================================`);
+        logger.info(`🚀 MongoDB connect succeeded!`);
+        logger.info(`=================================`);
+        this.ready = true;
+      });
+      this.mongoConnection.on('disconnected', ()=> {
+        logger.warn(`MongoDB disconnect!`);
+        this.ready = false;
+      });
+      this.mongoConnection.on('close', ()=> {
+        logger.warn(`MongoDB close!`);
+        this.ready = false;
+      });
+      return this.mongoClient;
+    } catch (error) {
+      logger.error(`MongoService init error: ${error}`);
       this.ready = false;
-    });
-
-    this.mongoConnection.on('connected', ()=> {
-      logger.info(`=================================`);
-      logger.info(`🚀 MongoDB connect succeeded`);
-      logger.info(`=================================`);
-      this.ready = true;
-    });
-
-    this.mongoConnection.on('disconnected', ()=> {
-      logger.info(`MongoDB disconnect!`);
-      this.ready = false;
-    });
-
-    this.mongoConnection.on('close', (error: any)=> {
-      logger.error(`MongoDB close: ${error}`);
-      this.ready = false;
-    });
-
+    }
   }
 
   async connect() {
@@ -51,21 +49,29 @@ export class MongoService{
       return this.ready;
     }
     try {
-      await this.mongoClient.connect(config.get('mongo.uri'), config.get('mongo.options'));
+      this.mongoClient = await this.mongoClient.connect(config.get('mongo.uri'), config.get('mongo.options'));
+      this.ready = true;
     } catch(error) {
       logger.error(`MongoDB connect error: ${error}`);
+      this.ready = false;
     }
+    return this.ready;
   }
 
   async disconnect() {
+    if (!this.ready) {
+      return !this.ready;
+    }
     try {
       await this.mongoClient.disconnect();
+      this.ready = false;
     } catch(error) {
       logger.error(`MongoDB disconnect error: ${error}`);
     }
+    return !this.ready;
   }
 
 }
 
-const mongoService = Container.get(MongoService);
+const mongoService = container.resolve(MongoService);
 export default mongoService;

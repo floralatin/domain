@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import mongoService from '../../../src/services/mongo.service';
 import { UserModel } from '../../../src/models/user.model';
 import { User } from '../../../src/interfaces/user.interface';

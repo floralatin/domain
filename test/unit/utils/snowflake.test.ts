@@ -28,16 +28,6 @@ describe('utils: snowflake', () => {
     expect(id2).toEqual(id1 + 1n);
   });
 
-  it('should throw error if worker ID is invalid', () => {
-    expect(() => new Snowflake(-1n, 0n)).toThrow();
-    expect(() => new Snowflake(322n, 0n)).toThrow();
-  });
-
-  it('should throw error if data center ID is invalid', () => {
-    expect(() => new Snowflake(0n, -1n)).toThrow();
-    expect(() => new Snowflake(0n, 322n)).toThrow();
-  });
-
   it('should wait until next millisecond if generating IDs too fast', () => {
     const snowflake = new Snowflake(1n, 2n);
     const spy = jest.spyOn(Date, 'now')

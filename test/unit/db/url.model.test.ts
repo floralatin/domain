@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import mongoService from '../../../src/services/mongo.service';
 import { UrlModel } from '.../../../src/models/url.model';
 import { Url } from "../../../src/interfaces/url.interface";

@@ -18,7 +18,8 @@ describe('Middleware: isBlack', () => {
     return res as Response;
   };
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    await redisService.connect();
     redisClient = redisService.getClient();
   });
 
@@ -33,12 +34,29 @@ describe('Middleware: isBlack', () => {
   });
 
   afterAll(async () => {
-    await redisClient.quit();
+    await redisService.disconnect();
+  });
+
+  it('should pass the request if the ip is not blacklisted and the number of requests is within the limit', async () => {
+    for (let i = 0; i < RATE_LIMIT_MAX_REQUESTS - 1; i++) {
+      await isBlack(req, res, next);
+    }
+
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(RATE_LIMIT_MAX_REQUESTS - 1);
   });
 
   it('should pass the request if the user is not blacklisted and the number of requests is within the limit', async () => {
+
+    const mockRequest: any = {
+      ip: '127.0.0.1',
+      user: {
+        uid: '121212',
+      }
+    } ;
     for (let i = 0; i < RATE_LIMIT_MAX_REQUESTS - 1; i++) {
-      await isBlack(req, res, next);
+      await isBlack(mockRequest, res, next);
     }
 
     expect(res.status).not.toHaveBeenCalled();

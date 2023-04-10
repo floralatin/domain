@@ -4,7 +4,7 @@ import { Statistics } from "../interfaces/statistics.interface";
 const statisticsSchema: Schema = new Schema({
   urlUid: { type: String, required: true, index: true},
   ip: { type: String, required: true },
-  refer: { type: String },
+  referer: { type: String },
   userAgent: { type: String },
   language: { type: String  },
   accept: { type: String  },

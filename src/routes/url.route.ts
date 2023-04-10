@@ -1,17 +1,15 @@
 import { Router } from "express";
-import { Service, Container } from "typedi";
 import { auth } from "../middlewares/auth.middleware";
 import { UrlController }from "../controllers/url.controller";
+import { container, singleton } from 'tsyringe';
 
-@Service()
+@singleton()
 export class UrlRoutes {
   public path = "/";
   private router: Router;
-  private urlController: UrlController;
-
-  constructor() {
+ 
+  constructor(public urlController: UrlController) {
     this.router = Router();
-    this.urlController = Container.get(UrlController);
     this.initializeRoutes();
   }
 
@@ -32,5 +30,5 @@ export class UrlRoutes {
   }
 }
 
-const urlRoutes = Container.get(UrlRoutes);
+const urlRoutes = container.resolve(UrlRoutes);
 export default urlRoutes;

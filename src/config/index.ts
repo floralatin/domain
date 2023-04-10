@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Container, Service } from "typedi";
+import { container, singleton } from 'tsyringe';
 
 import _ from "lodash";
 
@@ -16,7 +16,7 @@ const configs = {
 };
 const env = process.env.NODE_ENV?.toLowerCase() || "development";
 
-@Service()
+@singleton()
 export class Config {
   env = env;
   cache: { [k: string]: any } = {};
@@ -29,15 +29,11 @@ export class Config {
     return this.env == 'production';
   }
 
-  isDevelopment() {
-    return this.env == 'development';
-  }
-
   get(key: string): string | any {
     return _.get(this.cache, key);
   }
 }
 
-export const configService = Container.get(Config);
+export const configService = container.resolve(Config);
 
 export default configService;

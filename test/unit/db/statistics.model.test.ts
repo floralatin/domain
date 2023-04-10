@@ -1,7 +1,7 @@
-
-import mongoService from '../../../src/services/mongo.service';
+import "reflect-metadata";
 import { StatisticsModel } from '.../../../src/models/statistics.model';
 import { Statistics } from "../../../src/interfaces/statistics.interface";
+import mongoService from '../../../src/services/mongo.service';
 
 describe('UrlModel', () => {
   beforeAll(async () => {
@@ -18,7 +18,7 @@ describe('UrlModel', () => {
     const newStatistic: Statistics = new StatisticsModel({
       urlUid: "abc123",
       ip: "127.0.0.1",
-      refer: "http://localhost:3000/",
+      referer: "http://localhost:3000/",
       userAgent: "Mozilla/5.0",
       language: "en-US",
       accept: "text/html",
@@ -28,7 +28,7 @@ describe('UrlModel', () => {
     expect(savedStatistic._id).toBeDefined();
     expect(savedStatistic.urlUid).toBe(newStatistic.urlUid);
     expect(savedStatistic.ip).toBe(newStatistic.ip);
-    expect(savedStatistic.refer).toBe(newStatistic.refer);
+    expect(savedStatistic.referer).toBe(newStatistic.referer);
     expect(savedStatistic.userAgent).toBe(newStatistic.userAgent);
     expect(savedStatistic.language).toBe(newStatistic.language);
     expect(savedStatistic.accept).toBe(newStatistic.accept);
@@ -39,7 +39,7 @@ describe('UrlModel', () => {
   it("should fail to save a statistic with missing required fields", async () => {
     const newStatistic: Statistics = new StatisticsModel({
       ip: "127.0.0.1",
-      refer: "http://localhost:3000/",
+      referer: "http://localhost:3000/",
       userAgent: "Mozilla/5.0",
       language: "en-US",
       accept: "text/html",

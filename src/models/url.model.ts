@@ -23,8 +23,7 @@ const urlSchema: Schema = new Schema({
   },
   userUid: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   expiredTime: {
     type: Date,

@@ -91,6 +91,7 @@ describe("Controllers: UrlController", () => {
         code: 'abc123',
         uid: '1231231',
       };
+      jest.spyOn(redisService, "bloomExists").mockResolvedValue(true);
       jest.spyOn(redisService, "get").mockResolvedValue(JSON.stringify(mockOriginUrl));
 
       await urlController.redirect(req, res, next);
@@ -109,6 +110,7 @@ describe("Controllers: UrlController", () => {
         code: 'abc123',
         uid: '1231231',
       };
+      jest.spyOn(redisService, "bloomExists").mockResolvedValue(true);
       jest.spyOn(redisService, "get").mockResolvedValue(null);
       jest.spyOn(redisService, "setEx").mockResolvedValue(null);
       jest.spyOn(urlService, "findByCode").mockResolvedValue(mockOriginUrl as any);
@@ -126,6 +128,7 @@ describe("Controllers: UrlController", () => {
       const req: any = { params: { code: "abc123" } };
       const res: any = { redirect: jest.fn() };
       const next: any = jest.fn();
+      jest.spyOn(redisService, "bloomExists").mockResolvedValue(true);
       jest.spyOn(redisService, "get").mockResolvedValue(null);
       jest.spyOn(urlService, "findByCode").mockResolvedValue(null);
 
@@ -147,6 +150,21 @@ describe("Controllers: UrlController", () => {
       expect(redisService.get).not.toHaveBeenCalled();
       expect(urlService.findByCode).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(new ApplicationError(400, "Invalid Code"));
+      expect(res.redirect).not.toHaveBeenCalled();
+    });
+
+    it("should throw ApplicationError with 400 status code if code is not in bloom", async () => {
+      const req: any = { params: { code: "23232" } };
+      const res: any = { redirect: jest.fn() };
+      const next: any = jest.fn();
+
+      jest.spyOn(redisService, "bloomExists").mockResolvedValue(false);
+
+      await urlController.redirect(req, res, next);
+
+      expect(redisService.get).not.toHaveBeenCalled();
+      expect(urlService.findByCode).not.toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith(new ApplicationError(404, "URL not existed"));
       expect(res.redirect).not.toHaveBeenCalled();
     });
   });

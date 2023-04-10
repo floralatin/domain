@@ -16,7 +16,6 @@ describe('Middleware: rateLimiter', () => {
   });
 
   it('should call next if there are enough tokens in the bucket', () => {
-    jest.spyOn(TokenBucket.prototype, 'getToken').mockReturnValueOnce(true);
     rate(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalled();

@@ -2,43 +2,45 @@ import "reflect-metadata";
 
 import request from 'supertest';
 import app from '../../../src/server';
-import mongoService from "../../../src/services/mongo.service";
-import redisService from "../../../src/services/redis.service";
 
 describe('Health check', () => {
   const endpoint = '/ping';
-  let redisClient: any;
 
-  beforeAll(async() => {
-    redisClient = redisService.getClient();
-    await redisClient.flushDb('SYNC' as any);
-  });   
+  beforeAll(async ()=> {
+    await app.listen();
+  });
 
-  afterAll(async () => {
-    await redisClient.flushDb('SYNC' as any);
-    await mongoService.disconnect();
-    await redisService.disconnect();
+  afterAll(async ()=> {
+    await app.redisService.disconnect();
+    await app.mongoService.disconnect();
+    await app.getServer().close();
   });
 
   describe(`[GET] ${endpoint}`, () => {
 
-    it('should ping is true', async () => {
+    it('should return pong ', async () => {
+      await app.redisService.connect();
+      await app.mongoService.connect();
       const { body } = await request(app.getServer())
         .get(endpoint)
         .expect(200);
       expect(body).toEqual('pong');
     });
 
-    it('should forbidden too many request in the same time', async () => {
-      const promises: Promise<any>[] = [];
-      for (let i = 0; i < 140; i++) {
-        promises.push(request(app.getServer()).get(`${endpoint}`).timeout(10000).then(response => response.body));
-      }
-      const results = await Promise.all(promises);
-      const errorResult = results.find(body => body.status === 429);
-      expect(errorResult).toBeUndefined();
+    it('should return false', async () => {
+      await app.mongoService.disconnect();
+      const { body } = await request(app.getServer())
+        .get(endpoint)
+        .expect(500);
+      expect(body).toEqual('false');
+    });
 
-    }, 10000);
+    it('should failed 404', async () => {
+      await app.mongoService.disconnect();
+      await request(app.getServer())
+        .post(`/error`)
+        .expect(404);
+    });
    
   });
 });

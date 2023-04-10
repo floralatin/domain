@@ -5,14 +5,13 @@ export default {
     uri: "mongodb://127.0.0.1:27017/domain",
     options: {
       connectTimeoutMS: 10000,
-      minPoolSize: 5
+      minPoolSize: 5,
     },
   },
   redis: {
     node: {
       url: "redis://127.0.0.1:6379/0",
-      pingInterval: 10000,
-      prefix:'domain'
+      pingInterval: 10000
     },
     nodes: [
       {

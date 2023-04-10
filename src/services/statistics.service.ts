@@ -1,8 +1,9 @@
-import Container, { Service } from "typedi";
+import { container, singleton } from 'tsyringe';
 import { Statistics } from "../interfaces/statistics.interface";
 import { StatisticsModel } from "../models/statistics.model";
 
-@Service()
+
+@singleton()
 export class StatisticsService {
 
   public async createByOption(option: Statistics): Promise<Statistics> {
@@ -10,5 +11,5 @@ export class StatisticsService {
   }
 
 }
-const statisticsService = Container.get(StatisticsService);
+const statisticsService = container.resolve(StatisticsService);
 export default statisticsService;

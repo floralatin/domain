@@ -2,54 +2,49 @@ import "reflect-metadata";
 
 import request from 'supertest';
 import app from '../../../src/server';
-import urlService from '../../../src/services/url.service';
-import { Url } from '../../../src/interfaces/url.interface';
-import { UrlModel } from '../../../src/models/url.model';
-import mongoService from "../../../src/services/mongo.service";
-import redisService from "../../../src/services/redis.service";
+import config from "../../../src/config";
+
 import { RATE_LIMIT_MAX_REQUESTS, DAILY_TOTAL_LIMIT_MAX_REQUESTS, RATE_LIMIT_BLACKLIST_EXPIRE } from "../../../src/middlewares/black.middleware";
+import { generateToken } from "../../../src/utils/jwt";
+import teardown from "../teardown";
+import setup from "../setup";
 
 
 describe('Redirect to origin url, API: /:code', () => {
   const endpoint = '/';
-  const url = 'www.baidu.com';
-  let urlModel: Url;
-  const user = {
-    uid: '12121212121',
-  };
-  let redisClient: any;
+  const url = 'www.baidu.com/redirect';
+  const redisClient: any = app.redisService.getClient();
+  let token: string;
+  let code: string;
 
   beforeAll(async () => {
-    urlModel = await urlService.createByOption(url, user.uid);
-    redisClient = redisService.getClient();
-    await redisClient.flushDb('SYNC' as any);
+    await setup();
+    token = await generateToken({  uid: 'test-uid', }, 10000, config.get('secretKey'));
+    const { body } = await request(app.getServer())
+      .post('/url')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        url: url
+      }).expect(200);
+    const arr: [] = body.url.split('/');
+    code = arr[arr.length - 1];
   });
 
-  beforeEach(async()=> {
-    await redisClient.flushDb('SYNC' as any);
-  });
-
-  afterEach(async()=> {
-    await redisClient.flushDb('SYNC' as any);
-  });
-
-  afterAll(async () => {
-    await UrlModel.deleteOne({ uid: urlModel.uid });
-    await mongoService.disconnect();
-    await redisClient.flushDb('SYNC' as any);
-    await redisService.disconnect();
+  afterAll(async ()=> {
+    await teardown();
   });
 
   describe(`[GET] ${endpoint}:code`, () => {
+
     it('should successfully get origin url success from db', async () => {
       await request(app.getServer())
-        .get(`${endpoint}${urlModel.code}`)
+        .get(`${endpoint}${code}`)
         .expect(302);
     });
 
     it('should successfully get origin url from redis', async () => {
       await request(app.getServer())
-        .get(`${endpoint}${urlModel.code}`)
+        .get(`${endpoint}${code}`)
         .expect(302);
     });
 
@@ -71,30 +66,41 @@ describe('Redirect to origin url, API: /:code', () => {
         .expect(400);
     });
 
-    it('should forbidden too many request the same ip in the same time', async () => {
+  });
+
+  describe(`[GET] ${endpoint}:code blacklist`, () => { 
+    it('should forbidden because in blacklist', async () => {
       const promises: Promise<any>[] = [];
       for (let i = 0; i < RATE_LIMIT_MAX_REQUESTS+1; i++) {
-        promises.push(request(app.getServer()).get(`${endpoint}${urlModel.code}`).timeout(10000).then(response => response.body));
+        promises.push(request(app.getServer()).get(`${endpoint}${code}`).timeout(10000).then(response => response.body));
       }
       const results = await Promise.all(promises);
       const errorResult = results.find(body => body.status === 429);
       expect(errorResult).toBeUndefined();
 
-      const result = await request(app.getServer()).get(`${endpoint}${urlModel.code}`);
+      const result = await request(app.getServer()).get(`${endpoint}${code}`);
       expect(result.body.status).toBe(403);
+      const key = '::ffff:127.0.0.1:undefined';
+      const blackKey = app.redisService.getKey(`black:${key}`);
+      await redisClient.del(blackKey);
     });
+  });
 
-
+  describe(`[GET] ${endpoint}:code too many request`, () => { 
     it('should forbidden too many request max daily total count', async () => {
       const key = '::ffff:127.0.0.1:undefined';
-      await redisClient.set( redisService.getKey(`requests:total:${key}`), DAILY_TOTAL_LIMIT_MAX_REQUESTS, {
+      const requestKey = app.redisService.getKey(`requests:total:${key}`);
+      const blackKey = app.redisService.getKey(`black:${key}`);
+      await redisClient.del(blackKey);
+      await redisClient.del(requestKey);
+      await redisClient.set(requestKey, DAILY_TOTAL_LIMIT_MAX_REQUESTS, {
         EX: RATE_LIMIT_BLACKLIST_EXPIRE,
         NX: true,
       });
-      const result = await request(app.getServer()).get(`${endpoint}${urlModel.code}`);
+      const result = await request(app.getServer()).get(`${endpoint}${code}`);
       expect(result.body.status).toBe(429);
+      await redisClient.del(requestKey);
     });
-
   });
   
 });

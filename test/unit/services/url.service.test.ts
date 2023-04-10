@@ -1,4 +1,5 @@
 import "reflect-metadata";
+
 import mongoService from '../../../src/services/mongo.service';
 import urlService from '../../../src/services/url.service';
 
@@ -12,7 +13,7 @@ describe('Service: urlService', () => {
     uid: '1212121',
   };
 
-  beforeAll(async()=> {
+  beforeAll(async ()=> {
     await mongoService.connect();
   });
 

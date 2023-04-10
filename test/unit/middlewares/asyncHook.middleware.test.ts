@@ -22,7 +22,7 @@ describe('Middleware: asyncHook', () => {
   });
 
   afterAll(() => {
-    jest.resetModules();
+    jest.resetAllMocks();
   });
   
   it('should set trace id in request and response headers if not present in request', async () => {

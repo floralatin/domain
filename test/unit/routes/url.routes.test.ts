@@ -1,7 +1,13 @@
 import "reflect-metadata";
 import urlRoutes from '../../../src/routes/url.route';
 
+jest.mock('../../../src/services/redis.service');
+
 describe('Routes: urlRoutes', () => {
+
+  afterAll(() => {
+    jest.resetAllMocks();
+  });
 
   it("should call urlController.create method with auth middleware when POST /url is called", () => {
     const postUrlRoute = urlRoutes.getRouter().stack.find(

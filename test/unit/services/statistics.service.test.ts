@@ -1,3 +1,4 @@
+
 import "reflect-metadata";
 import { Statistics } from "../../../src/interfaces/statistics.interface";
 import { StatisticsModel } from "../../../src/models/statistics.model";
@@ -5,8 +6,8 @@ import statisticsService from "../../../src/services/statistics.service";
 import mongoService from '../../../src/services/mongo.service';
 
 describe("Service: StatisticsService", () => {
-
-  beforeAll(async () => {
+  
+  beforeAll(async ()=> {
     await mongoService.connect();
   });
 
@@ -23,7 +24,7 @@ describe("Service: StatisticsService", () => {
     const mockOption = {
       urlUid: "mockUrlUid",
       ip: "mockIp",
-      refer: "mockRefer",
+      referer: "mockRefer",
       userAgent: "mockUserAgent",
       language: "mockLanguage",
       accept: "mockAccept",

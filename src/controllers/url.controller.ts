@@ -1,19 +1,42 @@
 import { Request, Response, NextFunction } from "express";
-import Container, { Service } from "typedi";
 
 import { ApplicationError } from "../helpers/application.err";
 import { isCode, isUrl } from "../utils/validator";
 
-import redisService from "../services/redis.service";
-import urlService from "../services/url.service";
-import statisticsService from "../services/statistics.service";
+import { RedisService } from "../services/redis.service";
+import { UrlService } from "../services/url.service";
+import { StatisticsService } from "../services/statistics.service";
 import { urlDecode, urlEncode } from "../utils/transfer";
 import { Statistics } from "../interfaces/statistics.interface";
 import { Url } from "../interfaces/url.interface";
+import { logger } from '../utils/logger';
+import { container, singleton } from 'tsyringe';
 
-@Service()
+@singleton()
 export class UrlController {
   private redisPrefix = 'url';
+  private bloomFilter = {
+    name: 'bloom:code',
+    rate: 0.000000001,
+    capacity: 10000000000,
+    options: {
+      EXPANSION: 20000000000,
+    }
+  };
+
+  constructor(
+    protected redisService: RedisService,
+    protected urlService: UrlService,
+    protected statisticsService: StatisticsService
+  ) {
+    this.init().then().catch(error=> {
+      logger.error('UrlController error:',error);
+    });
+  }
+
+  async init() {
+    await this.redisService.createBloom(this.bloomFilter.name, this.bloomFilter.rate, this.bloomFilter.capacity);
+  }
 
   private getCacheUrlKey(key: string): string {
     return `${this.redisPrefix}:origin:${key}`;
@@ -27,15 +50,24 @@ export class UrlController {
     return `http://127.0.0.1:3000/${code}`;
   }
 
-  private getStatistic(req: Request, urlUid: string): Statistics{
-    return {
+  private getStatistic(req: Request, urlUid: string): Statistics{ 
+    const statistic = {
       urlUid: urlUid,
       ip: req.ip,
-      refer: req.header('referer') || '',
-      userAgent: req.header('User-Agent') || '',
-      language: req.header('Accept-language') || '',
-      accept: req.header('Accept') || ''
+      referer: '',
+      userAgent:  '',
+      language: '',
+      accept:  ''
     } as Statistics;
+    try {
+      statistic.referer = req.header('referer') || '';
+      statistic.userAgent = req.header('User-Agent') || '';
+      statistic.language = req.header('Accept-language') || '';
+      statistic.accept = req.header('Accept') || '';
+    } catch (error) {
+      logger.error('Url controller getStatistic error', error);
+    }
+    return statistic;
   }
 
   public async create(req: Request, res: Response, next: NextFunction) {
@@ -48,27 +80,22 @@ export class UrlController {
       
       const safeUrl = urlEncode(url);
       const urlRedisKey = this.getCacheUrlKey(`${userUid}:${safeUrl}`);
-      const cacheCode: string | null = await redisService.get(urlRedisKey);
+      const cacheCode: string | null = await this.redisService.get(urlRedisKey);
       if(cacheCode) {
         res.json({ url: this.getShortUrl(cacheCode) });
         return;
       }
 
-      const existed = await urlService.findByOption(safeUrl, userUid);
+      const existed = await this.urlService.findByOption(safeUrl, userUid);
       if (existed) {
-        await redisService.setEx(urlRedisKey, existed.code);
+        await this.redisService.setEx(urlRedisKey, existed.code);
         res.json({ url: this.getShortUrl(existed.code) });
         return;
       }
 
-      const create = await urlService.createByOption(safeUrl, userUid);
-      // 放到布隆过滤器中
-      // await redisService.bloom.setEx(codeRedisKey, JSON.stringify( {
-      //   uid: dbUrl.uid,
-      //   code: dbUrl.code,
-      //   url: dbUrl.url
-      // }));
-      await redisService.setEx(urlRedisKey, create.code);
+      const create = await this.urlService.createByOption(safeUrl, userUid);
+      await this.redisService.setEx(urlRedisKey, create.code);
+      await this.redisService.bloomAdd(this.bloomFilter.name, create.code);
 
       res.json({ url: this.getShortUrl(create.code) });
     } catch (error) {
@@ -82,40 +109,40 @@ export class UrlController {
       if (!code || !isCode(code)) {
         throw new ApplicationError(400, "Invalid Code");
       }
-      // 布隆过滤器
-      // const exists = await redisService.bloom.get(codeRedisKey);
-      // if (!exists) {
-      // throw new ApplicationError(404, "URL not existed");
-      // }
-      
+
+      const exists = await this.redisService.bloomExists(this.bloomFilter.name, code);
+      if (!exists) {
+        throw new ApplicationError(404, "URL not existed");
+      }
+
       const codeRedisKey = this.getCacheCodeKey(code);
-      const cacheUrl: string | null = await redisService.get(codeRedisKey);
+      const cacheUrl: string | null = await this.redisService.get(codeRedisKey);
       if (cacheUrl) {
         const originUrl: Url = JSON.parse(cacheUrl);
         
         const statistic = this.getStatistic(req, originUrl.uid);
         setImmediate(async ()=> {
-          await statisticsService.createByOption(statistic);
+          await this.statisticsService.createByOption(statistic);
         });
 
         res.redirect(302, originUrl.url);
         return;
       }
 
-      const dbUrl = await urlService.findByCode(code);
+      const dbUrl = await this.urlService.findByCode(code);
       if (!dbUrl) {
         throw new ApplicationError(404, "URL not existed");
       }
 
       const decodeUrl = urlDecode(dbUrl.url);
-      await redisService.setEx(codeRedisKey, JSON.stringify( {
+      await this.redisService.setEx(codeRedisKey, JSON.stringify( {
         uid: dbUrl.uid,
         code: dbUrl.code,
         url: decodeUrl
       }));
       const statistic = this.getStatistic(req, dbUrl.uid);
       setImmediate(async ()=> {
-        await statisticsService.createByOption(statistic);
+        await this.statisticsService.createByOption(statistic);
       });
       res.redirect(302, decodeUrl);
     } catch (error) {
@@ -125,5 +152,5 @@ export class UrlController {
 
 }
 
-const urlController = Container.get(UrlController);
+const urlController = container.resolve(UrlController);
 export default urlController;

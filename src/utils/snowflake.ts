@@ -18,14 +18,8 @@ export class Snowflake {
   private lastTimestamp = 0n;
 
   constructor(workerId: bigint, dataCenterId: bigint) {
-    if (workerId > this.maxWorkerId || workerId < 0n) {
-      throw new Error(`Invalid worker ID: ${workerId.toString()}`);
-    }
-    if (dataCenterId > this.maxDataCenterId || dataCenterId < 0n) {
-      throw new Error(`Invalid data center ID: ${dataCenterId.toString()}`);
-    }
-    this.workerId = workerId;
-    this.dataCenterId = dataCenterId;
+    this.workerId = workerId % this.maxWorkerId;
+    this.dataCenterId = dataCenterId % this.maxDataCenterId;
   }
 
   nextId(): bigint {
