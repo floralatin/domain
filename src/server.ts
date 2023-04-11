@@ -12,7 +12,6 @@ import bodyParser from 'body-parser';
 import compression from "compression";
 import cookieParser from 'cookie-parser';
 import { rate } from "./middlewares/limiter.middleware";
-import { isBlack } from "./middlewares/black.middleware";
 import { errorHandler } from "./middlewares/error.middleware";
 import { asyncHook } from "./middlewares/asyncHook.middleware";
 
@@ -66,9 +65,8 @@ export class App {
     this.app.use(helmet());
     this.app.use(compression());
     this.app.use(rate);
-    this.app.use(isBlack);
+    this.app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
     this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({ extended: false }));
     this.app.use(cookieParser());
   }
 

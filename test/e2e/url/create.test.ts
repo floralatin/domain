@@ -6,16 +6,17 @@ import config from '../../../src/config';
 import { generateToken } from '../../../src/utils/jwt';
 import teardown from "../teardown";
 import setup from "../setup";
+import { RATE_LIMIT_MAX_REQUESTS } from "../../../src/middlewares/black.middleware";
 
 describe('API: /url', () => {
   const endpoint = '/url';
-
-  const url = 'www.baidu.com/redirect';
   let token: string;
+  let token2: string;
 
   beforeAll(async () => {
     await setup();
-    token = await generateToken({ uid: '12121' }, 10000, config.get('secretKey'));
+    token = await generateToken({ uid: 'test1' }, 10000, config.get('secretKey'));
+    token2 = await generateToken({ uid: 'test2' }, 10000, config.get('secretKey'));
   });
 
   afterAll(async ()=> {
@@ -28,16 +29,37 @@ describe('API: /url', () => {
       await request(app.getServer())
         .post(endpoint)
         .expect(404);
+    });
 
+    it('should failed use wrong authentication', async () => {
       await request(app.getServer())
         .post(endpoint)
         .set('Authorization', `Bearer wrong-token`)
         .expect(401);
     });
 
-    it("'should successfully create short url use cookies", async () => {
+    it("'should failed use wrong cookies", async () => {
+      const url = 'www.baidu.com/redirect';
+      await request(app.getServer())
+        .post('/url')
+        .set('Cookie',  [`Authorization=wrong-token`])
+        .send({
+          url: url
+        }).expect(401);
+    });
+
+    it('should failed create short url use wrong url', async () => {
+      const wrongUrl = 'baidu.com/<script>alert("hello")</script>';
+      await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          url: wrongUrl
+        }).expect(400);
+    });
+
+    it("'should successfully create short url with cookies", async () => {
       const url = 'baidu.com/cookies';
-      
       const { body } = await request(app.getServer())
         .post('/url')
         .set('Cookie',  [`Authorization=${token}`])
@@ -48,16 +70,19 @@ describe('API: /url', () => {
       expect(body).toHaveProperty('url');
     });
 
-    it('should successfully create short url use wrong url', async () => {
-      await request(app.getServer())
+    it('should successfully create short url', async () => {
+      const url = 'baidu.com/authorization';
+      const { body } = await request(app.getServer())
         .post(endpoint)
         .set('Authorization', `Bearer ${token}`)
         .send({
-          url: 'baidu.com/<script>alert("hello")</script>'
-        }).expect(400);
+          url: url
+        }).expect(200);
+      expect(body).toHaveProperty('url');
     });
 
     it('should successfully create short url use same url', async () => {
+      const url = 'baidu.com/authorization2';
       const { body } = await request(app.getServer())
         .post(endpoint)
         .set('Authorization', `Bearer ${token}`)
@@ -74,6 +99,120 @@ describe('API: /url', () => {
         }).expect(200);
       expect(res2.body).toMatchObject(body);
     });
+
+    it('should successfully create short url use long url 2082', async () => {
+      const url = `baidu.com/rauthorzatioauthorizaauthorizan3zation33aut/ization33aut/izatization33aut/ization33aut/ization33aut/ization33aut/ization33aut/ization33authorization33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zh2//232/zation3zhan2//232/zation3zhanang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232`;
+      const { body } = await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          url: url
+        }).expect(200);
+      expect(body).toHaveProperty('url');
+    });
+
+    it('should failed create short url use long url 2083', async () => {
+      const url = `baidu.com/rauthowrzatioauthorizaauthorizan3zation33aut/ization33aut/izatization33aut/ization33aut/ization33aut/ization33aut/ization33aut/ization33authorization33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zh2//232/zation3zhan2//232/zation3zhanang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232`;
+      const { body } = await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          url: url
+        }).expect(400);
+      expect(body).toMatchObject({"message": "Invalid URL", "status": 400});
+    });
+
+
+    it('should successfully create short url use different user', async () => {
+      const url = 'baidu.com/authorization/test1';
+      const request1 = await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          url: url
+        }).expect(200);
+      expect(request1.body).toHaveProperty('url');
+
+      const request2 = await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({
+          url: url
+        }).expect(200);
+      expect(request2.body).toHaveProperty('url');
+
+      expect(request2.body.url).not.toEqual(request1.body.url);
+    });
+
+  });
+
+
+  describe(`[POST] ${endpoint} in black list`, () => {
+
+    afterAll(async ()=> {
+      const redisClient: any = app.redisService.getClient();
+      await redisClient.flushAll('SYNC');
+    });
+
+    it('should successfully create short url use different user', async () => {
+      const url = 'baidu.com/authorization/blacklist';
+      const promises: Promise<any>[] = [];
+      for (let i = 0; i < RATE_LIMIT_MAX_REQUESTS+1; i++) {
+        promises.push(request(app.getServer())
+          .post(endpoint)
+          .set('Authorization', `Bearer ${token}`)
+          .send({
+            url: url
+          }));
+      }
+      const responses = await Promise.all(promises);
+      const response = responses.find(response => response.status === 403);
+      expect(response).toBeDefined();
+      expect(response.status).toBe(403);
+      expect(response.body).toMatchObject({ status: 403, message: 'You are blacklisted.' });
+     
+     
+      const request1 = await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          url: url
+        }).expect(403);
+      expect(request1.body).toMatchObject({"message": "You are blacklisted.", "status": 403});
+
+      const request2 = await request(app.getServer())
+        .post(endpoint)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({
+          url: url
+        }).expect(200);
+      expect(request2.body).toHaveProperty('url');
+    });
+
+  });
+
+
+  describe(`[POST] ${endpoint} in rate limit`, () => {
+
+    it('should successfully create short url use different user', async () => {
+      const url = 'baidu.com/authorization/rate';
+      const promises: Promise<any>[] = [];
+      for (let i = 0 ; i < 25; i++) {
+        const tempToken = await generateToken({ uid: `test-token${i}` }, 10000, config.get('secretKey'));
+        for (let i = 0; i < 9; i++) {
+          promises.push(request(app.getServer())
+            .post(endpoint)
+            .set('Authorization', `Bearer ${tempToken}`)
+            .send({
+              url: url
+            }));
+        }
+      }
+      const responses = await Promise.all(promises);
+      const response = responses.find(response =>  response.status === 429);
+      expect(response).toBeDefined();
+      expect(response.body).toMatchObject({ status: 429, message: 'Too Many Requests' });
+    }, 1000000);
 
   });
   

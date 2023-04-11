@@ -14,6 +14,13 @@ describe('utils: validator', ()=> {
     it('should return false for an empty string', () => {
       expect(isUrl('')).toBe(false);
     });
+
+    it('should return false for an long string 2083', () => {
+      const url = `baidu.com/3ra2thorzatioauthorizaauthorizan3zation33aut/ization33aut/izatization33aut/ization33aut/ization33aut/ization33aut/ization33aut/ization33authorization33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation33authorization33aut/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zh2//232/zation3zhan2//232/zation3zhanang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/zation3zhang3autho!@#rization33aut/23//23//232//232/on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232on3zhang3autho!@#rization33aut/23//23//232//232`;
+      expect(isUrl(url)).toBe(false);
+    });
+
+    
   });
   
   describe('isCode', () => {

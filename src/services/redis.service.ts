@@ -53,8 +53,8 @@ export class RedisService {
       return this.ready;
     }
     try {
-      this.ready = true;
       await this.client.connect();
+      this.ready = true;
     } catch (error) {
       logger.error(`Redis connect error: ${error}`);
       this.ready = false;

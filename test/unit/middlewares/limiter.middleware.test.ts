@@ -10,7 +10,7 @@ describe('Middleware: rateLimiter', () => {
     req = {};
     res = {
       status: jest.fn(() => res as Response),
-      send: jest.fn(),
+      json: jest.fn(),
     };
     next = jest.fn();
   });
@@ -20,7 +20,6 @@ describe('Middleware: rateLimiter', () => {
 
     expect(next).toHaveBeenCalled();
     expect(res.status).not.toHaveBeenCalled();
-    expect(res.send).not.toHaveBeenCalled();
   });
 
   it('should return 429 if there are not enough tokens in the bucket', () => {
@@ -29,7 +28,7 @@ describe('Middleware: rateLimiter', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(429);
-    expect(res.send).toHaveBeenCalledWith('Too Many Requests');
+    expect(res.json).toHaveBeenCalledWith({ status: 429, message: 'Too Many Requests'});
   });
 
 });

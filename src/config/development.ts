@@ -5,7 +5,8 @@ export default {
     uri: "mongodb://127.0.0.1:27017/domain",
     options: {
       connectTimeoutMS: 10000,
-      minPoolSize: 5,
+      minPoolSize: 20,
+      autoCreate: true,
     },
   },
   redis: {

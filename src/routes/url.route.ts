@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { auth } from "../middlewares/auth.middleware";
+import { isBlack } from "../middlewares/black.middleware";
 import { UrlController }from "../controllers/url.controller";
 import { container, singleton } from 'tsyringe';
 
@@ -16,11 +17,11 @@ export class UrlRoutes {
   private initializeRoutes() {
     this.router.post(
       `${this.path}url`,
-      auth,
+      auth, isBlack,
       this.urlController.create.bind(this.urlController)
     );
     this.router.get(
-      `${this.path}:code`,
+      `${this.path}:code`, isBlack,
       this.urlController.redirect.bind(this.urlController)
     );
   }

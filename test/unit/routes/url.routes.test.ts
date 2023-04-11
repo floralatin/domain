@@ -15,7 +15,8 @@ describe('Routes: urlRoutes', () => {
     );
   
     expect(postUrlRoute?.route?.stack[0].name).toBe("auth");
-    expect(postUrlRoute?.route?.stack[1].name).toBe('bound create');
+    expect(postUrlRoute?.route?.stack[1].name).toBe('isBlack');
+    expect(postUrlRoute?.route?.stack[2].name).toBe('bound create');
 
   });
   
@@ -23,7 +24,8 @@ describe('Routes: urlRoutes', () => {
     const getUrlRoute = urlRoutes.getRouter().stack.find(
       (s) => s.route && s.route.path === "/:code" && s.route.methods.get
     );
-    expect( getUrlRoute?.route?.stack[0].name).toBe('bound redirect');
+    expect( getUrlRoute?.route?.stack[0].name).toBe('isBlack');
+    expect( getUrlRoute?.route?.stack[1].name).toBe('bound redirect');
   });
   
 });

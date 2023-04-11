@@ -34,6 +34,6 @@ export const rate = (req: Request, res: Response, next: NextFunction) => {
   if (tokenBucket.getToken(1)) {
     next();
   } else {
-    res.status(429).send('Too Many Requests');
+    res.status(429).json({ status: 429, message: 'Too Many Requests'});
   }
 };

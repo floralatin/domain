@@ -6,6 +6,7 @@ export function isUrl(url: string): boolean {
     }
     return false;
   } catch (error) {
+    console.error('validator error', error);
     return false;
   }
 }

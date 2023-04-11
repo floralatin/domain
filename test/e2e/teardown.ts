@@ -9,7 +9,8 @@ export default async function teardown() {
   await UrlModel.deleteMany({});
   await UserModel.deleteMany({});
 
+  await appServer.getServer().close();
   await appServer.redisService.disconnect();
   await appServer.mongoService.disconnect();
-  await appServer.getServer().close();
+  
 }

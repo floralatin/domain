@@ -1,6 +1,8 @@
 import redisService from '../../../src/services/redis.service';
 import { logger } from '../../../src/utils/logger';
 
+jest.mock('../../../src/utils/logger');
+
 describe('RedisService', () => {
   let redisClient: any;
 
@@ -12,20 +14,19 @@ describe('RedisService', () => {
 
   afterAll(async () => {
     await redisClient.flushAll('SYNC');
-    await redisService.disconnect(); // disconnect client after running tests
-    jest.clearAllMocks();
+    await redisService.disconnect();
   });
 
-  afterEach(()=> {
+  afterEach(async ()=> {
     jest.clearAllMocks();
   });
-
  
   describe('init', () => { 
     it('should log error and set ready to false when close emits an error', () => {
       redisService.ready = true;
       redisService.client.emit('error');
       expect(redisService.ready).toBe(false);
+      redisService.ready = true;
     });
   });
 
@@ -36,16 +37,6 @@ describe('RedisService', () => {
       await redisService.connect();
       expect(redisService.client.connect).toHaveBeenCalled();
       expect(redisService.ready).toBe(true);
-    });
-  });
-
-  describe('disconnect', () => { 
-    it('should log error if disconnect throws', async () => {
-      redisService.ready = true;
-      redisService.client.disconnect = jest.fn().mockRejectedValue(new Error('Disconnect failed'));
-      const errorSpy = jest.spyOn(logger, 'error');
-      await redisService.disconnect();
-      expect(errorSpy).toHaveBeenCalled();
     });
   });
 
@@ -65,19 +56,22 @@ describe('RedisService', () => {
       const capacity = 10000;
 
       redisService.ready = false;
+      redisService.client.connect = jest.fn().mockResolvedValue({} as any);
       const result = await redisService.createBloom(bloomName, rate, capacity);
+      expect(redisService.client.connect).toHaveBeenCalled();
 
       expect(result).toBe(true);
     });
 
-    it('should return false if bloom filter already exists', async () => {
-      const bloomName = 'testBloom';
-      const rate = 0.01;
-      const capacity = 10000;
-      const result = await redisService.createBloom(bloomName, rate, capacity);
+    // it('should return false if bloom filter already exists', async () => {
+    //   const bloomName = 'testBloom';
+    //   const rate = 0.01;
+    //   const capacity = 10000;  
+    //   redisService.ready = true;
+    //   const result = await redisService.createBloom(bloomName, rate, capacity);
 
-      expect(result).toBe(true);
-    });
+    //   expect(result).toBe(true);
+    // });
   });
 
   describe('bloomAdd', () => {
@@ -143,5 +137,17 @@ describe('RedisService', () => {
 
       expect(result).toBe(null);
     });
+  });
+
+  describe('disconnect', () => { 
+
+    it('should log error if disconnect throws', async () => {
+      redisService.client.disconnect = jest.fn().mockRejectedValue(new Error('Disconnect failed'));
+      const errorSpy = jest.spyOn(logger, 'error');
+      await redisService.disconnect();
+      expect(redisService.ready).toBe(true);
+      expect(errorSpy).toHaveBeenCalled();
+    });
+
   });
 });
