@@ -37,6 +37,7 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
+    "@types/apidoc": "^0.50.0",
     "@types/body-parser": "^1.19.2",
     "@types/compression": "^1.7.2",
     "@types/cookie-parser": "^1.4.3",
@@ -51,6 +52,7 @@
     "@types/validator": "^13.7.14",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
+    "apidoc": "^0.54.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.37.0",
     "husky": "^8.0.3",

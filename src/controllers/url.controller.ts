@@ -70,6 +70,27 @@ export class UrlController {
     return statistic;
   }
 
+  /**
+  * @api {post} /url Create a short Url
+  * @apiName Create
+  * @apiPermission user
+  * @apiGroup Url
+  *
+  * @apiBody {String} url the origin url
+  *
+  * @apiSuccess {String} url  The short Url
+  * @apiSuccessExample {json} 200
+  *     HTTP/1.1 200 OK
+  *     {
+  *         "url": "http://127.0.0.1:3000/sdaasd"
+  *     }
+  * 
+  * @apiErrorExample 400:
+  *     HTTP/1.1 400 Invalid URL
+  *     {
+  *       "message": "Invalid URL"
+  *     }
+  */
   public async create(req: Request, res: Response, next: NextFunction) {
     try {
       const url: string = req.body.url;
@@ -103,6 +124,28 @@ export class UrlController {
     }
   }
 
+  /**
+  * @api {get} /:code Request code information
+  * @apiName Redirect
+  * @apiGroup Url
+  *
+  * @apiParam {String} code the short url code
+  *
+  * @apiSuccessExample 302
+  *     HTTP/1.1 302
+  *     "http://127.0.0.1:3000/sdaasd"
+  * 
+  * @apiErrorExample 400:
+  *     HTTP/1.1 400 Invalid Code
+  *     {
+  *       "message": "Invalid Code"
+  *     }
+  * @apiErrorExample 404:
+  *     HTTP/1.1 404 URL not existed
+  *     {
+  *       "message": "URL not existed"
+  *     }
+  */
   public async redirect(req: Request, res: Response, next: NextFunction) {
     try {
       const code = req.params.code;
