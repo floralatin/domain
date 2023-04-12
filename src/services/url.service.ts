@@ -19,7 +19,7 @@ export class UrlService {
 
   public async findByOption(url: string, userUid: string): Promise<Url | null> {
 
-    return await UrlModel.findOne({ url: {$eq: url }, userUid: {$eq: userUid} });
+    return await UrlModel.findOne({ userUid: {$eq: userUid}, url: {$eq: url } });
   }
 
 

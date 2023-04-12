@@ -35,6 +35,6 @@ const userSchema: Schema = new Schema({
     type: Boolean,
     default: 1,
   },
-});
+}, { shardKey: { uid: 'hashed' } });
 
 export const UserModel = model<User & Document>("User", userSchema);

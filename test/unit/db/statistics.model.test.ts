@@ -16,6 +16,7 @@ describe('UrlModel', () => {
 
   it("should create and save a new statistic successfully", async () => {
     const newStatistic: Statistics = new StatisticsModel({
+      uid: '121212121',
       urlUid: "abc123",
       ip: "127.0.0.1",
       referer: "http://localhost:3000/",

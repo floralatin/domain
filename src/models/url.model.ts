@@ -23,11 +23,11 @@ const urlSchema: Schema = new Schema({
   },
   userUid: {
     type: String,
-    required: true
+    required: true,
+    index: true,
   },
   expiredTime: {
     type: Date,
-    default: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
   },
   createTime: {
     type: Date,
@@ -41,6 +41,6 @@ const urlSchema: Schema = new Schema({
     type: Boolean,
     default: 1,
   },
-}, { shardKey: { uid: 1 } });
+}, { shardKey: { uid: 'hashed' } });
 
 export const UrlModel = model<Url & Document>("Url", urlSchema);
