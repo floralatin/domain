@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 const redisClient = redisService.getClient();
 
-export const RATE_LIMIT_MAX_REQUESTS = 10; // 时间窗口内最大请求次数
+export const RATE_LIMIT_MAX_REQUESTS = 15; // 时间窗口内最大请求次数
 export const RATE_LIMIT_BLACKLIST_EXPIRE = 60 * 60 * 6; // 黑名单过期时间，单位为秒
 export const DAILY_TOTAL_LIMIT_EXPIRE = 60 * 60 * 24; 
 export const DAILY_TOTAL_LIMIT_MAX_REQUESTS = 500;

@@ -4,7 +4,7 @@ import { container, singleton } from 'tsyringe';
 import http, { Server } from 'http';
 import express, { Request, Response, NextFunction } from "express";
 import config from "./config";
-import { logger } from "./utils/logger";
+import { logger, TRACE_ID } from "./utils/logger";
 
 import helmet from "helmet";
 import cors from "cors";
@@ -61,6 +61,7 @@ export class App {
   private initializeMiddlewares() {
     this.app.use(asyncHook);
     this.app.use(this.healthCheckMiddleware());
+    this.app.use(this.logRequestsMiddleware());
     this.app.use(cors());
     this.app.use(helmet());
     this.app.use(compression());
@@ -68,6 +69,32 @@ export class App {
     this.app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
     this.app.use(bodyParser.json());
     this.app.use(cookieParser());
+  }
+
+  logRequestsMiddleware() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const startedAt = Date.now();
+      const traceId = Reflect.get(req, TRACE_ID);
+      const url = req.originalUrl;
+      if (['GET', 'DELETE', 'HEAD', 'OPTIONS'].includes(req.method.toUpperCase())) {
+        logger.info(`Incoming request: ${req.method.toUpperCase()} ${url} ${req.ip}, traceId: ${traceId}`, );
+      } else {
+        logger.info(`Incoming request: ${req.method.toUpperCase()} ${url} ${res.get('Content-Type') || 'unspecified-type'} ${res.get('content-length') || 'N/A'} ${req.ip}, traceId: ${traceId}`);
+      }
+
+      res.once('error', (err) => {
+        const traceId = Reflect.get(req, TRACE_ID);
+        logger.error(`Error in response: ${err.toString()}, err: ${err}, traceId: ${traceId}`);
+      });
+
+      res.once('close', () => {
+        const traceId = Reflect.get(res, TRACE_ID);
+        const duration = Date.now() - startedAt;
+        logger.info(`Request completed: ${res.statusCode} ${req.method.toUpperCase()} ${url} ${res.get('Content-Type') || 'unspecified-type'} ${duration}ms, traceId: ${traceId}`);
+      });
+
+      return next();
+    };
   }
 
   private healthCheckMiddleware() {

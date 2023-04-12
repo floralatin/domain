@@ -16,7 +16,7 @@ export class TokenBucket {
   public getToken(apply: number): boolean {
     const now = Date.now();
     const elapsedTime = now - this.lastFillTime;
-    this.tokens = Math.min( this.capacity, this.tokens + elapsedTime * (this.fillRate / 1000));
+    this.tokens = Math.min(this.capacity, this.tokens + this.fillRate * ( elapsedTime / 1000));
     
     if (this.tokens < apply) {
       return false;
@@ -28,7 +28,7 @@ export class TokenBucket {
   }
 }
 
-const tokenBucket = new TokenBucket(100, 100);
+const tokenBucket = new TokenBucket(200, 100);
 
 export const rate = (req: Request, res: Response, next: NextFunction) => {
   if (tokenBucket.getToken(1)) {

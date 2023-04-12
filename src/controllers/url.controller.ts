@@ -76,7 +76,7 @@ export class UrlController {
       if (!url || !isUrl(url)) {
         throw new ApplicationError(400, "Invalid URL");
       }
-      const userUid = (req as any).user.uid;
+      const userUid = (req as any).user?.uid;
       
       const safeUrl = urlEncode(url);
       const urlRedisKey = this.getCacheUrlKey(`${userUid}:${safeUrl}`);

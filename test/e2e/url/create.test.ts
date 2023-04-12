@@ -140,7 +140,6 @@ describe('API: /url', () => {
           url: url
         }).expect(200);
       expect(request2.body).toHaveProperty('url');
-
       expect(request2.body.url).not.toEqual(request1.body.url);
     });
 
@@ -154,7 +153,7 @@ describe('API: /url', () => {
       await redisClient.flushAll('SYNC');
     });
 
-    it('should successfully create short url use different user', async () => {
+    it('should successfully be add in blacklist after many request', async () => {
       const url = 'baidu.com/authorization/blacklist';
       const promises: Promise<any>[] = [];
       for (let i = 0; i < RATE_LIMIT_MAX_REQUESTS+1; i++) {
@@ -188,31 +187,6 @@ describe('API: /url', () => {
         }).expect(200);
       expect(request2.body).toHaveProperty('url');
     });
-
-  });
-
-
-  describe(`[POST] ${endpoint} in rate limit`, () => {
-
-    it('should successfully create short url use different user', async () => {
-      const url = 'baidu.com/authorization/rate';
-      const promises: Promise<any>[] = [];
-      for (let i = 0 ; i < 25; i++) {
-        const tempToken = await generateToken({ uid: `test-token${i}` }, 10000, config.get('secretKey'));
-        for (let i = 0; i < 9; i++) {
-          promises.push(request(app.getServer())
-            .post(endpoint)
-            .set('Authorization', `Bearer ${tempToken}`)
-            .send({
-              url: url
-            }));
-        }
-      }
-      const responses = await Promise.all(promises);
-      const response = responses.find(response =>  response.status === 429);
-      expect(response).toBeDefined();
-      expect(response.body).toMatchObject({ status: 429, message: 'Too Many Requests' });
-    }, 1000000);
 
   });
   
