@@ -117,6 +117,11 @@ export class UrlController {
       const create = await this.urlService.createByOption(safeUrl, userUid);
       await this.redisService.setEx(urlRedisKey, create.code);
       await this.redisService.bloomAdd(this.bloomFilter.name, create.code);
+      await this.redisService.setEx(this.getCacheCodeKey(create.code), JSON.stringify( {
+        uid: create.uid,
+        code: create.code,
+        url: create.url
+      }));
 
       res.json({ url: this.getShortUrl(create.code) });
     } catch (error) {

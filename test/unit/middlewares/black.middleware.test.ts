@@ -70,7 +70,7 @@ describe('Middleware: isBlack', () => {
     }
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted.", status: 403 });
+    expect(res.json).toHaveBeenCalledWith({ message: "Forbidden.", status: 403 });
     expect(next).not.toHaveBeenCalledTimes(RATE_LIMIT_MAX_REQUESTS+1);
   });
 
@@ -81,7 +81,7 @@ describe('Middleware: isBlack', () => {
     await isBlack(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ message: "You are blacklisted.", status: 403 });
+    expect(res.json).toHaveBeenCalledWith({ message: "Forbidden.", status: 403 });
     expect(next).not.toHaveBeenCalled();
   });
 

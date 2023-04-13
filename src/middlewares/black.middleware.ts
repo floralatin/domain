@@ -39,7 +39,7 @@ export const isBlack = async (req: Request, res: Response, next: NextFunction) =
   try {
     const exists = await redisClient.exists(blackKey);
     if (exists) {
-      return res.status(403).json({ status: 403, message: "You are blacklisted."});
+      return res.status(403).json({ status: 403, message: "Forbidden."});
     }
 
     const dailyResult = await redisClient.eval(DAILY_TOTAL_LIMIT_SCRIPT, {
@@ -61,7 +61,7 @@ export const isBlack = async (req: Request, res: Response, next: NextFunction) =
         EX: RATE_LIMIT_BLACKLIST_EXPIRE,
         NX: true,
       });
-      return res.status(403).json({ status: 403, message: "You are blacklisted."});
+      return res.status(403).json({ status: 403, message: "Forbidden."});
     }
     next();
   } catch(error) {

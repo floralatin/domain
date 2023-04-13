@@ -122,7 +122,6 @@ describe('API: /url', () => {
       expect(body).toMatchObject({"message": "Invalid URL", "status": 400});
     });
 
-
     it('should successfully create short url use different user', async () => {
       const url = 'baidu.com/authorization/test1';
       const request1 = await request(app.getServer())
@@ -144,7 +143,6 @@ describe('API: /url', () => {
     });
 
   });
-
 
   describe(`[POST] ${endpoint} in black list`, () => {
 
@@ -168,7 +166,7 @@ describe('API: /url', () => {
       const response = responses.find(response => response.status === 403);
       expect(response).toBeDefined();
       expect(response.status).toBe(403);
-      expect(response.body).toMatchObject({ status: 403, message: 'You are blacklisted.' });
+      expect(response.body).toMatchObject({ status: 403, message: 'Forbidden.' });
      
      
       const request1 = await request(app.getServer())
@@ -177,7 +175,7 @@ describe('API: /url', () => {
         .send({
           url: url
         }).expect(403);
-      expect(request1.body).toMatchObject({"message": "You are blacklisted.", "status": 403});
+      expect(request1.body).toMatchObject({"message": "Forbidden.", "status": 403});
 
       const request2 = await request(app.getServer())
         .post(endpoint)
@@ -189,5 +187,5 @@ describe('API: /url', () => {
     });
 
   });
-  
+
 });
