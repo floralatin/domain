@@ -1,13 +1,14 @@
 name: Deploy
+
 on:
   push:
     tags:
       - v*.*.*
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
         with:
