@@ -10,13 +10,13 @@ export default {
   },
   redis: {
     node: {
-      url: "redis://redis.dev.domain.ai:6379/0",
+      url: process.env.MONGO_URI,
       pingInterval: 10000,
       prefix:'domain'
     },
     nodes: [
       {
-        url: "redis://redis.dev.domain.ai:6379/0"
+        url: process.env.MONGO_URI
       }
     ],
     password: "",
